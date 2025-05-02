@@ -1,0 +1,54 @@
+name: Dynamic Download and Build ImmortalWRT 
+ 
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '输入目标版本号（例如24.10.0）'
+        required: true 
+        default: '24.10.0'
+      model_id:
+        description: '选择机型ID'
+        required: true 
+        default: 'qihoo_360t7'
+        type: choice 
+        options:
+          - qihoo_360t7 
+          - redmi_ax6-stock 
+      packages:
+        description: '选择要编译的包（用空格分隔），可用 -pkg 排除包'
+        required: false 
+        default: 'opkg -luci-i18n-base-zh-cn'
+ 
+jobs:
+  download-build:
+    runs-on: ubuntu-22.04 
+    steps:
+      - name: Checkout 
+        uses: actions/checkout@v3.6.0 
+ 
+      - name: Install dependencies 
+        run: ./.github/scripts/install-deps.sh  
+ 
+      - name: Get Target Platform 
+        id: get-target 
+        run: ./.github/scripts/get-platform.sh  ${{ inputs.version  }} ${{ inputs.model_id  }}
+ 
+      - name: Download and Extract ImageBuilder 
+        run: ./.github/scripts/download-extract.sh  ${{ inputs.version  }} ${{ steps.get-target.outputs.target_platform_slash  }} ${{ steps.get-target.outputs.target_platform_hyphen  }}
+ 
+      - name: Configure Repositories 
+        run: ./.github/scripts/config-repos.sh  
+ 
+      - name: Process Package List 
+        id: process-packages 
+        run: ./.github/scripts/process-packages.sh  "${{ inputs.packages  }}" 
+ 
+      - name: Build Firmware 
+        run: ./.github/scripts/build-firmware.sh  ${{ inputs.model_id  }} "${{ steps.process-packages.outputs.packages_included  }}" "${{ steps.process-packages.outputs.packages_excluded  }}"
+ 
+      - name: Upload Artifacts 
+        uses: actions/upload-artifact@v4 
+        with:
+          name: firmware-${{ inputs.model_id  }}-${{ inputs.version  }}
+          path: immortalwrt-imagebuilder-*/bin/targets/${{ steps.get-target.outputs.target_platform_slash  }}
