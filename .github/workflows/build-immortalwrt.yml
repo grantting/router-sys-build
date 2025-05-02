@@ -28,24 +28,24 @@ jobs:
         uses: actions/checkout@v3.6.0 
  
       - name: Install dependencies 
-        run: scripts/install-deps.sh  
+        run: bash  scripts/install-deps.sh  
  
       - name: Get Target Platform 
         id: get-target 
-        run: scripts/get-platform.sh  ${{ inputs.version  }} ${{ inputs.model_id  }}
+        run: bash  scripts/get-platform.sh  ${{ inputs.version  }} ${{ inputs.model_id  }}
  
       - name: Download and Extract ImageBuilder 
-        run: scripts/download-extract.sh  ${{ inputs.version  }} ${{ steps.get-target.outputs.target_platform_slash  }} ${{ steps.get-target.outputs.target_platform_hyphen  }}
+        run: bash  scripts/download-extract.sh  ${{ inputs.version  }} ${{ steps.get-target.outputs.target_platform_slash  }} ${{ steps.get-target.outputs.target_platform_hyphen  }}
  
       - name: Configure Repositories 
-        run: scripts/config-repos.sh  
+        run: bash  scripts/config-repos.sh  
  
       - name: Process Package List 
         id: process-packages 
-        run: scripts/process-packages.sh  "${{ inputs.packages  }}" 
+        run: bash  scripts/process-packages.sh  "${{ inputs.packages  }}" 
  
       - name: Build Firmware 
-        run: scripts/build-firmware.sh  ${{ inputs.model_id  }} "${{ steps.process-packages.outputs.packages_included  }}" "${{ steps.process-packages.outputs.packages_excluded  }}"
+        run: bash  scripts/build-firmware.sh  ${{ inputs.model_id  }} "${{ steps.process-packages.outputs.packages_included  }}" "${{ steps.process-packages.outputs.packages_excluded  }}"
  
       - name: Upload Artifacts 
         uses: actions/upload-artifact@v4 
