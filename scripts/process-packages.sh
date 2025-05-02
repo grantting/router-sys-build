@@ -1,31 +1,37 @@
 #!/bin/bash 
-set -e 
+set -euo pipefail 
  
-input_pkgs=$1 
+input_pkgs=${1:-""}
  
 echo "正在处理软件包列表..."
-# 分割输入参数 
-IFS=' ' read -ra PKG_ARRAY <<< "$input_pkgs"
- 
-# 分离包含和排除的包 
+# 初始化数组 
 INCLUDED=()
 EXCLUDED=()
  
+# 安全分割输入参数 
+IFS=' ' read -ra PKG_ARRAY <<< "${input_pkgs}"
+ 
 for pkg in "${PKG_ARRAY[@]}"; do 
-    if [[ $pkg == -pkg* ]]; then 
-        EXCLUDED+=("${pkg#-pkg}")
-    else 
-        INCLUDED+=("$pkg")
-    fi 
+    case "$pkg" in 
+        -pkg*)
+            EXCLUDED+=("${pkg#-pkg}")
+            ;;
+        -*)
+            EXCLUDED+=("${pkg#-}")
+            ;;
+        *)
+            INCLUDED+=("$pkg")
+            ;;
+    esac 
 done 
  
-# 合并为字符串 
-INCLUDED_STR=$(IFS=' '; echo "${INCLUDED[*]}")
-EXCLUDED_STR=$(IFS=' '; echo "${EXCLUDED[*]}")
+# 验证输出 
+echo "有效输入参数: ${input_pkgs}"
+echo "最终包含的包: ${INCLUDED[*]}"
+echo "实际排除的包: ${EXCLUDED[*]}"
  
-echo "最终包含的包: $INCLUDED_STR"
-echo "排除的包: $EXCLUDED_STR"
- 
-# 输出到环境变量 
-echo "packages_included=$INCLUDED_STR" >> $GITHUB_OUTPUT 
-echo "packages_excluded=$EXCLUDED_STR" >> $GITHUB_OUTPUT 
+# 格式化输出 
+{
+    echo "packages_included=${INCLUDED[*]@Q}";
+    echo "packages_excluded=${EXCLUDED[*]@Q}";
+} >> "${GITHUB_OUTPUT}" 

@@ -18,14 +18,14 @@ on:
       packages:
         description: '选择要编译的包（用空格分隔），可用 -pkg 排除包'
         required: false 
-        default: 'opkg -luci-i18n-base-zh-cn luci-app-upnp luci-app-wol luci-app-sqm luci-app-turboacc luci-app-passwall -luci-lua-runtime'
+        default: 'opkg -luci-i18n-base-zh-cn luci-app-upnp luci-app-wol luci-app-sqm luci-app-turboacc -luci-lua-runtime luci-app-passwall '
  
 jobs:
   download-build:
     runs-on: ubuntu-22.04 
     steps:
       - name: Checkout 
-        uses: actions/checkout@v3.6.0 
+        uses: actions/checkout@v4
  
       - name: Install dependencies 
         run: bash  scripts/install-deps.sh  
