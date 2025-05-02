@@ -11,12 +11,12 @@ echo "检测到架构包: $ARCH_PACKAGES"
 sed -i 's/^option check_signature/# option check_signature/' repositories.conf  
  
 # 保留原有 kenzok8 源 
-echo "src/gz openwrt_kenzok8_package https://op.dllkids.xyz/packages/$ARCH_PACKAGES/"  >> repositories.conf  
+echo "src/gz openwrt_kenzok8_package https://op.dllkids.xyz/packages/$ARCH_PACKAGES"  >> repositories.conf  
  
 # 添加 archive.openwrt.org  22.03 源 
-echo "src/gz openwrt_archive_base https://archive.openwrt.org/releases/packages-22.03/$ARCH_PACKAGES/base/"  >> repositories.conf  
-echo "src/gz openwrt_archive_packages https://archive.openwrt.org/releases/packages-22.03/$ARCH_PACKAGES/packages/"  >> repositories.conf  
-echo "src/gz openwrt_archive_luci https://archive.openwrt.org/releases/packages-22.03/$ARCH_PACKAGES/luci/"  >> repositories.conf  
+echo "src/gz openwrt_archive_base https://archive.openwrt.org/releases/packages-22.03/$ARCH_PACKAGES/base"  >> repositories.conf  
+echo "src/gz openwrt_archive_packages https://archive.openwrt.org/releases/packages-22.03/$ARCH_PACKAGES/packages"  >> repositories.conf  
+echo "src/gz openwrt_archive_luci https://archive.openwrt.org/releases/packages-22.03/$ARCH_PACKAGES/luci"  >> repositories.conf  
  
 echo "当前软件源配置："
 cat repositories.conf  
