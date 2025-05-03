@@ -18,7 +18,7 @@ on:
       packages:
         description: '选择要编译的包（用空格分隔），可用 -pkg 排除包'
         required: false 
-        default: 'opkg -luci-i18n-base-zh-cn luci-app-upnp luci-app-wol luci-app-sqm luci-app-turboacc -luci-lua-runtime luci-app-passwall '
+        default: 'luci-app-upnp luci-app-wol luci-app-sqm luci-app-passwall -luci-i18n-base-zh-cn'
  
 jobs:
   download-build:
