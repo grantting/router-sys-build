@@ -2,10 +2,11 @@
 set -e 
  
 # Create directory structure 
-mkdir -p files/etc/uci-defaults 
+mkdir -p files/etc/uci-defaults
  
 # Generate custom configuration 
-cat > files/etc/uci-defaults/99-custom <<'EOF'
+cat << "EOF" > files/etc/uci-defaults/99-custom
+
 #!/bin/sh 
  
 # Network settings 
@@ -48,9 +49,9 @@ uci set passwall.@socks[-1].enabled='1'
 uci set passwall.@socks[-1].port='1081'
 uci commit passwall 
  
-exit 0 
-EOF 
- 
+exit 0
+EOF
+
 # Set execute permission 
 chmod 0755 files/etc/uci-defaults/99-custom 
  
