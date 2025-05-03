@@ -18,14 +18,14 @@ on:
       packages:
         description: '选择要编译的包（用空格分隔），可用 -pkg 排除包'
         required: false 
-        default: 'luci-app-upnp luci-app-timedreboot luci-app-qosmate luci-app-taskplan luci-app-vlmcsd -luci-i18n-base-zh-cn'
+        default: 'luci-app-upnp luci-app-timedreboot luci-app-qosmate luci-app-taskplan luci-app-vlmcsd luci-app-passwall2 luci-app-argon-config luci-theme-argon luci-app-wizard -luci-i18n-base-zh-cn'
  
 jobs:
   download-build:
     runs-on: ubuntu-22.04 
     steps:
       - name: Checkout 
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
  
       - name: Install dependencies 
         run: bash  scripts/install-deps.sh  
@@ -45,7 +45,9 @@ jobs:
       #   run: bash  scripts/process-packages.sh  "${{ inputs.packages  }}" 
  
       - name: Build Firmware 
-        run: bash  scripts/build-firmware.sh  ${{ inputs.model_id  }} "${{ inputs.packages  }}" 
+        run: 
+          bash  scripts/secure-setup.sh
+          bash  scripts/build-firmware.sh  ${{ inputs.model_id  }} "${{ inputs.packages  }}" 
  
       - name: Upload Artifacts 
         uses: actions/upload-artifact@v4 
