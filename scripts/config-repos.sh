@@ -14,9 +14,9 @@ sed -i 's/^option check_signature/# option check_signature/' repositories.conf
 echo "src/gz openwrt_kenzok8_package https://op.dllkids.xyz/packages/$ARCH_PACKAGES"  >> repositories.conf  
  
 # 添加 archive.openwrt.org  22.03 源 
-echo "src/gz openwrt_archive_base https://archive.openwrt.org/releases/packages-22.03/$ARCH_PACKAGES/base"  >> repositories.conf  
-echo "src/gz openwrt_archive_packages https://archive.openwrt.org/releases/packages-22.03/$ARCH_PACKAGES/packages"  >> repositories.conf  
-echo "src/gz openwrt_archive_luci https://archive.openwrt.org/releases/packages-22.03/$ARCH_PACKAGES/luci"  >> repositories.conf  
+# echo "src/gz openwrt_archive_base https://archive.openwrt.org/releases/packages-22.03/$ARCH_PACKAGES/base"  >> repositories.conf  
+# echo "src/gz openwrt_archive_packages https://archive.openwrt.org/releases/packages-22.03/$ARCH_PACKAGES/packages"  >> repositories.conf  
+# echo "src/gz openwrt_archive_luci https://archive.openwrt.org/releases/packages-22.03/$ARCH_PACKAGES/luci"  >> repositories.conf  
 echo "src/gz  kiddin9_packages https://dl.openwrt.ai/releases/24.10/packages/$ARCH_PACKAGES/kiddin9"  >> repositories.conf  
  
 echo "当前软件源配置："
