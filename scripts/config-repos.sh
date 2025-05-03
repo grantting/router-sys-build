@@ -23,5 +23,6 @@ cat repositories.conf
  
 # 解决默认设置冲突 
 echo "CONFIG_PACKAGE_default-settings-chn=y" >> .config 
+echo "CONFIG_PACKAGE_luci-lua-runtime=n" >> .config  # 显式禁用包 
 echo "当前配置修改："
 grep -E "default-settings" .config 
