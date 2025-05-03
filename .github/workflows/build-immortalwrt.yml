@@ -46,7 +46,7 @@ jobs:
  
       - name: Build Firmware 
         run: 
-          bash  scripts/secure-setup.sh
+          # bash  scripts/secure-setup.sh
           bash  scripts/build-firmware.sh  ${{ inputs.model_id  }} "${{ inputs.packages  }}" 
  
       - name: Upload Artifacts 
