@@ -1,70 +1,48 @@
 #!/bin/sh 
-set -e 
  
-# Create directory structure 
-mkdir -p files/etc/uci-defaults
+# 创建文件夹和文件 
+mkdir -p /files/etc/uci-defaults 
+cat > /files/etc/uci-defaults/99-custom << 'EOF'
+#!/bin/bash 
  
-# Generate custom configuration 
-cat << "EOF" > files/etc/uci-defaults/99-custom
-
-#!/bin/sh 
+# Apply configuration changes using UCI 
+uci batch <<- 'UCI_EOF'
+set network.lan.ipaddr='10.0.0.1' 
+set luci.main.mediaurlbase='/luci-static/argon' 
+set wizard.default.ipv6='0' 
+set wireless.radio0.mu_beamformer='1' 
+set wireless.radio1.mu_beamformer='1' 
+set wireless.radio0.country='US' 
+set wireless.radio1.country='US' 
+set wireless.radio0.htmode='HE160' 
+set wireless.default_radio0.ieee80211r='1' 
+set wireless.default_radio1.ieee80211r='1' 
+set wireless.radio0.channel='149' 
+set upnpd.config.enabled='1' 
+set system.@system[0].hostname='DWRT'
+add passwall2 nodes 
+set passwall2.@nodes[-1]='AVVjwzzU'
+set passwall2.@nodes[-1].remarks='自动切换'
+set passwall2.@nodes[-1].type='Socks'
+set passwall2.@nodes[-1].address='127.0.0.1'
+set passwall2.@nodes[-1].port='1081'
+set passwall2.@global[0].tcp_node='AVVjwzzU'
+add passwall2 socks 
+set passwall2.@socks[-1].enabled='1'
+set passwall2.@socks[-1].port='1081'
+UCI_EOF 
  
-# Network settings 
-uci set network.lan.ipaddr='10.0.0.1' 
-uci commit network 
+# Commit changes 
+uci commit 
  
-# LUCI theme settings 
-uci set luci.main.mediaurlbase='/luci-static/argon' 
-uci commit luci 
- 
-# Wireless settings 
-uci set wireless.radio0.mu_beamformer='1' 
-uci set wireless.radio1.mu_beamformer='1' 
-uci set wireless.radio0.country='US' 
-uci set wireless.radio1.country='US' 
-uci set wireless.radio0.htmode='HE160' 
-uci set wireless.default_radio0.ieee80211r='1' 
-uci set wireless.default_radio1.ieee80211r='1' 
-uci set wireless.radio0.channel='149' 
-uci commit wireless 
- 
-# UPnP settings 
-uci set upnpd.config.enabled='1' 
-uci commit upnpd 
- 
-# System settings 
-uci set system.@system[0].hostname='OpenWRT'
-uci commit system 
- 
-# Passwall settings 
-uci add passwall nodes 
-uci set passwall.@nodes[-1]='AVVjwzzU'
-uci set passwall.@nodes[-1].remarks='自动切换'
-uci set passwall.@nodes[-1].type='Socks'
-uci set passwall.@nodes[-1].address='127.0.0.1'
-uci set passwall.@nodes[-1].port='1081'
-uci set passwall.@global[0].tcp_node='AVVjwzzU'
-uci add passwall socks 
-uci set passwall.@socks[-1].enabled='1'
-uci set passwall.@socks[-1].port='1081'
-uci commit passwall 
- 
-exit 0
-EOF
-
-# Set execute permission 
-chmod 0755 files/etc/uci-defaults/99-custom 
- 
-# Change root password securely 
-root_password="root" 
+# Change root password 
+root_password="root"
 if [ -n "$root_password" ]; then 
-  echo "Changing root password..."
-  if ! (echo "$root_password"; sleep 1; echo "$root_password") | passwd root >/dev/null 2>&1; then 
-    echo "Failed to change root password." >&2 
-    exit 1 
-  fi 
-  echo "Root password changed successfully."
+(echo "$root_password"; sleep 1; echo "$root_password") | passwd > /dev/null 
 fi 
  
-echo "Configuration completed"
-exit 0 
+echo "All configurations applied successfully!"
+EOF 
+ 
+# 设置文件可执行权限 
+chmod +x /files/etc/uci-defaults/99-custom 
