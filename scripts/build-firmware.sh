@@ -2,34 +2,36 @@
 set -euo pipefail 
  
 model_id=$1 
-pkg_list=$2  # 直接使用传入的完整包列表（包含排除项）
-
-
-echo "当前工作目录: $(pwd)"
-echo "目录内容:"
-ls -l
+pkg_list=$2 
  
-
-echo "=== 开始编译固件 ===" 
-cd immortalwrt-imagebuilder-* || { 
-    echo "错误：找不到ImageBuilder目录" 
-    exit 1 
-} 
+echo "=== 开始编译流程 ===" 
+echo "目标设备: $model_id"
+echo "软件包列表: $pkg_list"
  
-echo "当前设备: $model_id"
-echo "使用包列表: $pkg_list"
+# 定位ImageBuilder目录 
+builder_dir=$(find . -maxdepth 1 -type d -name "immortalwrt-imagebuilder-*" | head -n 1)
+[ -z "$builder_dir" ] && { echo "错误：未找到ImageBuilder目录"; exit 1; }
  
- # 调试：确认进入后的目录
-echo "当前编译目录: $(pwd)"
-echo "编译前目录内容:"
-ls -l
-
-# 直接编译（保留原有排除语法）
-echo "=== 执行编译命令 ===" 
-make image \
+# 直接复制files目录 
+echo "复制files目录到ImageBuilder..."
+cp -rf files "$builder_dir/" || { echo "错误：files目录复制失败"; exit 1; }
+ 
+# 进入编译目录 
+cd "$builder_dir" || exit 1 
+ 
+# 执行编译 
+echo -e "\n=== 正在编译 (使用$(( $(nproc) + 1 ))线程) ===" 
+time make image \
     PROFILE="$model_id" \
     PACKAGES="$pkg_list" \
     FILES="files" \
-    -j$(nproc)
+    -j$(( $(nproc) + 1 )) 
  
-echo "=== 固件编译完成 ===" 
+# 结果处理 
+[ $? -eq 0 ] && {
+    echo -e "\n=== 编译成功 ===" 
+    find bin/targets -type f \( -name "*.img" -o -name "*.bin" \) -exec ls -lh {} \;
+} || {
+    echo -e "\n=== 编译失败 ===" 
+    exit 1 
+}
