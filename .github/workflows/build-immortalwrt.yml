@@ -37,8 +37,8 @@ jobs:
       - name: Download and Extract ImageBuilder 
         run: bash  scripts/download-extract.sh  ${{ inputs.version  }} ${{ steps.get-target.outputs.target_platform_slash  }} ${{ steps.get-target.outputs.target_platform_hyphen  }}
  
-      # - name: Configure Repositories 
-      #   run: bash  scripts/config-repos.sh 
+      - name: Configure Repositories 
+        run: bash  scripts/config-repos.sh 
  
       # - name: Process Package List 
       #   id: process-packages 
@@ -46,7 +46,7 @@ jobs:
  
       - name: Build Firmware 
         run: 
-          bash  scripts/secure-setup.sh
+          # bash  scripts/secure-setup.sh
           bash  scripts/build-firmware.sh  ${{ inputs.model_id  }} "${{ inputs.packages  }}" 
  
       - name: Upload Artifacts 
