@@ -18,7 +18,7 @@ echo "=== 执行编译命令 ==="
 make image \
     PROFILE="$model_id" \
     PACKAGES="$pkg_list" \
-    FILES=files/ \
+    FILES="files" \
     -j$(nproc)
  
 echo "=== 固件编译完成 ===" 
