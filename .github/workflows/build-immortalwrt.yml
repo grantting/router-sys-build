@@ -26,18 +26,7 @@ jobs:
     steps:
       - name: Checkout 
         uses: actions/checkout@v3
-
-      - name: Copy Source Code to ImageBuilder 
-        run: |
-          # 查找解压后的 ImageBuilder 目录（通常类似 immortalwrt-imagebuilder-xxxx）
-          IMAGEBUILDER_DIR=$(ls -d immortalwrt-imagebuilder-*)
-          
-          # 将当前代码（$GITHUB_WORKSPACE）复制到 ImageBuilder 目录下 
-          cp -r . "$IMAGEBUILDER_DIR/source"
-          
-          # 进入 ImageBuilder 目录（后续操作在此进行）
-          cd "$IMAGEBUILDER_DIR"
-  
+ 
       - name: Install dependencies 
         run: bash  ../scripts/install-deps.sh  
  
@@ -48,6 +37,17 @@ jobs:
       - name: Download and Extract ImageBuilder 
         run: bash  ../scripts/download-extract.sh  ${{ inputs.version  }} ${{ steps.get-target.outputs.target_platform_slash  }} ${{ steps.get-target.outputs.target_platform_hyphen  }}
  
+      - name: Copy Source Code to ImageBuilder 
+        run: |
+          # 查找解压后的 ImageBuilder 目录（通常类似 immortalwrt-imagebuilder-xxxx）
+          IMAGEBUILDER_DIR=$(ls -d immortalwrt-imagebuilder-*)
+          
+          # 将当前代码（$GITHUB_WORKSPACE）复制到 ImageBuilder 目录下 
+          cp -r . "$IMAGEBUILDER_DIR/source"
+          
+          # 进入 ImageBuilder 目录（后续操作在此进行）
+          cd "$IMAGEBUILDER_DIR"
+          
       - name: Configure Repositories 
         run: bash ../scripts/config-repos.sh 
  
