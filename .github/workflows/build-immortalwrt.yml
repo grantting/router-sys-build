@@ -28,14 +28,14 @@ jobs:
         uses: actions/checkout@v3
  
       - name: Install dependencies 
-        run: bash  ../scripts/install-deps.sh  
+        run: bash  scripts/install-deps.sh  
  
       - name: Get Target Platform 
         id: get-target 
-        run: bash  ../scripts/get-platform.sh  ${{ inputs.version  }} ${{ inputs.model_id  }}
+        run: bash  scripts/get-platform.sh  ${{ inputs.version  }} ${{ inputs.model_id  }}
  
       - name: Download and Extract ImageBuilder 
-        run: bash  ../scripts/download-extract.sh  ${{ inputs.version  }} ${{ steps.get-target.outputs.target_platform_slash  }} ${{ steps.get-target.outputs.target_platform_hyphen  }}
+        run: bash  scripts/download-extract.sh  ${{ inputs.version  }} ${{ steps.get-target.outputs.target_platform_slash  }} ${{ steps.get-target.outputs.target_platform_hyphen  }}
  
       - name: Copy Source Code to ImageBuilder 
         run: |
@@ -47,7 +47,7 @@ jobs:
           
           # 进入 ImageBuilder 目录（后续操作在此进行）
           cd "$IMAGEBUILDER_DIR"
-          
+
       - name: Configure Repositories 
         run: bash ../scripts/config-repos.sh 
  
