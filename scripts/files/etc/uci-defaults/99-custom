@@ -39,24 +39,24 @@ set upnpd.config.enabled='1'
 set system.@system[0].hostname='QWRT'
  
 # ============================================= 
-# PassWall 代理配置 (PassWall Proxy Settings)
+# PassWall2 代理配置 (PassWall2 Proxy Settings)
 # ============================================= 
 # 节点配置 (Socks5 代理)
-set passwall.AVVjwzzU=nodes
-set passwall.AVVjwzzU.remarks=' 自动切换'
-set passwall.AVVjwzzU.type='Socks' 
-set passwall.AVVjwzzU.address='127.0.0.1' 
-set passwall.AVVjwzzU.port='1081' 
+set passwall2.AVVjwzzU=nodes
+set passwall2.AVVjwzzU.remarks=' 自动切换'
+set passwall2.AVVjwzzU.type='Socks' 
+set passwall2.AVVjwzzU.address='127.0.0.1' 
+set passwall2.AVVjwzzU.port='1081' 
  
 # 全局代理设置
-set passwall.@global[0].tcp_node='AVVjwzzU'
+set passwall2.@global[0].tcp_node='AVVjwzzU'
  
 # 本地 Socks5 服务端配置 
-set passwall.oFIfqfES=socks
-set passwall.oFIfqfES.enabled='1' 
-set passwall.oFIfqfES.port='1081' 
-set passwall.oFIfqfES.http_port='0' 
-set passwall.oFIfqfES.enable_autoswitch='1' 
+set passwall2.oFIfqfES=socks
+set passwall2.oFIfqfES.enabled='1' 
+set passwall2.oFIfqfES.port='1081' 
+set passwall2.oFIfqfES.http_port='0' 
+set passwall2.oFIfqfES.enable_autoswitch='1' 
  
 EOF 
  
