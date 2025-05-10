@@ -18,7 +18,7 @@ on:
       packages:
         description: '选择要编译的包（用空格分隔），可用 -pkg 排除包'
         required: false 
-        default: 'luci-app-upnp luci-app-timedreboot luci-app-qosmate luci-app-taskplan luci-app-vlmcsd luci-app-passwall2 luci-app-argon-config luci-theme-argon luci-app-wizard uci libubox-dev -luci-i18n-base-zh-cn'
+        default: 'luci-app-upnp luci-app-timedreboot luci-app-qosmate luci-app-taskplan luci-app-vlmcsd luci-app-passwall2 luci-app-argon-config luci-theme-argon luci-app-wizard -luci-i18n-base-zh-cn'
  
 jobs:
   download-build:
@@ -30,7 +30,7 @@ jobs:
       - name: Initialization Environment
         run: |
           sudo apt-get -qq update
-          sudo apt-get -qq install build-essential libncurses5-dev libncursesw5-dev zlib1g-dev gawk git gettext libssl-dev xsltproc rsync wget unzip qemu-utils mkisofs jq zstd libzstd-dev git cmake
+          sudo apt-get -qq install build-essential libncurses-dev zlib1g-dev gawk git gettext libssl-dev xsltproc rsync wget unzip python3 python3-distutils
 
       - name: Install dependencies 
         run: bash  scripts/install-deps.sh  

@@ -21,7 +21,15 @@ cd "$builder_dir" || exit 1
 
 echo "当前工作目录: $(pwd)"
 echo "目录内容:"
-ls -l 
+ls -l
+
+# 检查files目录是否存在并递归列出内容 
+if [ -d "files" ]; then 
+    echo -e "\nfiles目录内容(递归):"
+    find files -print | sed -e 's;[^/]*/;|____;g;s;____|; |;g'
+else 
+    echo -e "\n警告：files目录不存在"
+fi 
 
 # 执行编译 
 echo -e "\n=== 正在编译 (使用$(( $(nproc) + 1 ))线程) ===" 
@@ -37,5 +45,5 @@ time make image \
     find bin/targets -type f \( -name "*.img" -o -name "*.bin" \) -exec ls -lh {} \;
 } || {
     echo -e "\n=== 编译失败 ===" 
-    exit 1 
+    exit 1
 }
