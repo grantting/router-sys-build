@@ -1,62 +1,59 @@
 #!/bin/bash 
  
-# ============================================= 
-# 网络基础配置 (Network Basic Configuration)
-# =============================================
 uci -q batch <<- 'EOF'
  
 # LAN 网络设置
-set network.lan.ipaddr='10.0.0.1' 
+uci set network.lan.ipaddr='10.0.0.1' 
  
 # LuCI 主题设置 
-set luci.main.mediaurlbase='/luci-static/argon' 
+uci set luci.main.mediaurlbase='/luci-static/argon' 
  
 # 禁用 IPv6 向导
-set wizard.default.ipv6='0' 
+uci set wizard.default.ipv6='0' 
  
 # ============================================= 
 # 无线网络配置 (Wireless Configuration)
 # ============================================= 
 # Radio0 设置 (5GHz)
-set wireless.radio0.mu_beamformer='1' 
-set wireless.radio0.country='US' 
-set wireless.radio0.htmode='HE160' 
-set wireless.radio0.channel='149' 
-set wireless.default_radio0.ieee80211r='1'   # 802.11r 快速漫游
+uci set wireless.radio0.mu_beamformer='1' 
+uci set wireless.radio0.country='US' 
+uci set wireless.radio0.htmode='HE160' 
+uci set wireless.radio0.channel='149' 
+uci set wireless.default_radio0.ieee80211r='1'   # 802.11r 快速漫游
  
 # Radio1 设置 (2.4GHz)
-set wireless.radio1.mu_beamformer='1' 
-set wireless.radio1.country='US' 
-set wireless.default_radio1.ieee80211r='1'   # 802.11r 快速漫游
+uci set wireless.radio1.mu_beamformer='1' 
+uci set wireless.radio1.country='US' 
+uci set wireless.default_radio1.ieee80211r='1'   # 802.11r 快速漫游
  
 # =============================================
 # 系统与服务配置 (System & Services)
 # =============================================
 # UPnP 服务启用
-set upnpd.config.enabled='1' 
+uci set upnpd.config.enabled='1' 
  
 # 主机名设置
-set system.@system[0].hostname='QWRT'
+uci set system.@system[0].hostname='QWRT'
  
 # ============================================= 
 # PassWall2 代理配置 (PassWall2 Proxy Settings)
 # ============================================= 
 # 节点配置 (Socks5 代理)
-set passwall2.AVVjwzzU=nodes
-set passwall2.AVVjwzzU.remarks=' 自动切换'
-set passwall2.AVVjwzzU.type='Socks' 
-set passwall2.AVVjwzzU.address='127.0.0.1' 
-set passwall2.AVVjwzzU.port='1081' 
+uci set passwall2.AVVjwzzU=nodes
+uci set passwall2.AVVjwzzU.remarks=' 自动切换'
+uci set passwall2.AVVjwzzU.type='Socks' 
+uci set passwall2.AVVjwzzU.address='127.0.0.1' 
+uci set passwall2.AVVjwzzU.port='1081' 
  
 # 全局代理设置
-set passwall2.@global[0].tcp_node='AVVjwzzU'
+uci set passwall2.@global[0].tcp_node='AVVjwzzU'
  
 # 本地 Socks5 服务端配置 
-set passwall2.oFIfqfES=socks
-set passwall2.oFIfqfES.enabled='1' 
-set passwall2.oFIfqfES.port='1081' 
-set passwall2.oFIfqfES.http_port='0' 
-set passwall2.oFIfqfES.enable_autoswitch='1' 
+uci set passwall2.oFIfqfES=socks
+uci set passwall2.oFIfqfES.enabled='1' 
+uci set passwall2.oFIfqfES.port='1081' 
+uci set passwall2.oFIfqfES.http_port='0' 
+uci set passwall2.oFIfqfES.enable_autoswitch='1' 
  
 EOF 
  
