@@ -18,7 +18,11 @@ cp -rf files "$builder_dir/" || { echo "错误：files目录复制失败"; exit 
  
 # 进入编译目录 
 cd "$builder_dir" || exit 1 
- 
+
+echo "当前工作目录: $(pwd)"
+echo "目录内容:"
+ls -l 
+
 # 执行编译 
 echo -e "\n=== 正在编译 (使用$(( $(nproc) + 1 ))线程) ===" 
 time make image \
