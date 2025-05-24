@@ -23,9 +23,13 @@ on:
 jobs:
   download-build:
     runs-on: ubuntu-22.04 
+       
     steps:
-      - name: Checkout 
+      # 在 $GITHUB_WORKSPACE 下签出您的存储库，以便您的作业可以访问它
+      - name: 查看
         uses: actions/checkout@v3
+        with: 
+          path: origin
  
       - name: Initialization Environment
         run: |
@@ -50,8 +54,9 @@ jobs:
       #   run: bash  scripts/process-packages.sh  "${{ inputs.packages  }}" 
  
       - name: Build Firmware 
-        run: 
-          # bash  scripts/secure-setup.sh
+        run:
+          # 复制 files 到 immortalwrt-imagebuilder-* 目录 
+          cp -r files/ immortalwrt-imagebuilder-*/ 
           bash  scripts/build-firmware.sh  ${{ inputs.model_id  }} "${{ inputs.packages  }}" 
  
       - name: Upload Artifacts 
