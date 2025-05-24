@@ -56,7 +56,8 @@ jobs:
       - name: Build Firmware 
         run:
           # 复制 files 到 immortalwrt-imagebuilder-* 目录 
-          cp -r $GITHUB_WORKSPACE/origin/files/ $GITHUB_WORKSPACE/origin/immortalwrt-imagebuilder-*/
+          cp -r $GITHUB_WORKSPACE/origin/files/ $GITHUB_WORKSPACE/origin/immortalwrt-imagebuilder-*/ ;
+
           bash  $GITHUB_WORKSPACE/origin/scripts/build-firmware.sh  ${{ inputs.model_id  }} "${{ inputs.packages  }}" 
  
       - name: Upload Artifacts 
