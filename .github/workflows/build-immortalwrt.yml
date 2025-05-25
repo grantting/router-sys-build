@@ -18,7 +18,7 @@ on:
       packages:
         description: '选择要编译的包（用空格分隔），可用 -pkg 排除包'
         required: false 
-        default: 'luci-app-upnp luci-app-timedreboot luci-app-qosmate luci-app-taskplan luci-app-vlmcsd luci-app-passwall2 luci-app-argon-config luci-theme-argon luci-app-wizard -luci-i18n-base-zh-cn'
+        default: 'luci-app-upnp luci-app-timedreboot luci-app-qosmate luci-app-taskplan luci-app-passwall2 luci-app-argon-config luci-theme-argon luci-app-wizard -luci-i18n-base-zh-cn'
  
 jobs:
   download-build:
