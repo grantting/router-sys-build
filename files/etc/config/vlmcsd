@@ -1,0 +1,3 @@
+if grep -q "option enabled 1" /etc/config/vlmcsd; then 
+    /usr/bin/vlmcsd -D -e 
+fi 
