@@ -10,11 +10,11 @@ on:
       model_id:
         description: '选择机型ID'
         required: true 
-        default: 'qihoo_360t7'
+        default: 'redmi_ax6-stock'
         type: choice 
         options:
-          - redmi_ax6-stock
-          - qihoo_360t7
+          - redmi_ax6-stock 
+          - qihoo_360t7 
       packages:
         description: '选择要编译的包（用空格分隔），可用 -pkg 排除包'
         required: false 
@@ -23,47 +23,34 @@ on:
 jobs:
   download-build:
     runs-on: ubuntu-22.04 
-       
     steps:
-      - name: 查看 
+      - name: Checkout 
         uses: actions/checkout@v3
-        with: 
-          path: origin 
  
-      - name: Initialization Environment 
+      - name: Initialization Environment
         run: |
-          sudo apt-get -qq update 
-          sudo apt-get -qq install -y build-essential libncurses-dev zlib1g-dev gawk git gettext libssl-dev xsltproc rsync wget unzip python3 python3-distutils
- 
+          sudo apt-get -qq update
+          sudo apt-get -qq install build-essential libncurses-dev zlib1g-dev gawk git gettext libssl-dev xsltproc rsync wget unzip python3 python3-distutils
+
       - name: Install dependencies 
-        run: bash $GITHUB_WORKSPACE/origin/scripts/install-deps.sh   
+        run: bash  scripts/install-deps.sh  
  
       - name: Get Target Platform 
         id: get-target 
-        run: bash $GITHUB_WORKSPACE/origin/scripts/get-platform.sh  ${{ inputs.version  }} ${{ inputs.model_id  }}
+        run: bash  scripts/get-platform.sh  ${{ inputs.version  }} ${{ inputs.model_id  }}
  
       - name: Download and Extract ImageBuilder 
-        run: bash $GITHUB_WORKSPACE/origin/scripts/download-extract.sh  ${{ inputs.version  }} ${{ steps.get-target.outputs.target_platform_slash  }} ${{ steps.get-target.outputs.target_platform_hyphen  }}
- 
+        run: bash  scripts/download-extract.sh  ${{ inputs.version  }} ${{ steps.get-target.outputs.target_platform_slash  }} ${{ steps.get-target.outputs.target_platform_hyphen  }}
+
       - name: Configure Repositories 
-        run: bash $GITHUB_WORKSPACE/origin/scripts/config-repos.sh  
- 
+        run: bash scripts/config-repos.sh 
+  
       - name: Build Firmware 
-        run: |
-          # 确保目标目录存在 
-          IMAGEBUILDER_DIR=$(ls -d $GITHUB_WORKSPACE/origin/immortalwrt-imagebuilder-*)
-          echo "目标目录: $IMAGEBUILDER_DIR"
-          
-          # 复制files目录
-          echo "复制自定义文件..."
-          cp -rv $GITHUB_WORKSPACE/origin/files/ $IMAGEBUILDER_DIR/
-          
-          # 构建固件
-          echo "开始构建固件..."
-          bash $GITHUB_WORKSPACE/origin/scripts/build-firmware.sh  ${{ inputs.model_id  }} "${{ inputs.packages  }}"
+        run: 
+          make image PROFILE="${{ inputs.model_id  }}" PACKAGES="${{ inputs.packages  }}" FILES="files"
  
       - name: Upload Artifacts 
         uses: actions/upload-artifact@v4 
         with:
           name: firmware-${{ inputs.model_id  }}-${{ inputs.version  }}
-          path: $GITHUB_WORKSPACE/origin/immortalwrt-imagebuilder-*/bin/targets/${{ steps.get-target.outputs.target_platform_slash  }}
+          path: immortalwrt-imagebuilder-*/bin/targets/${{ steps.get-target.outputs.target_platform_slash  }}
