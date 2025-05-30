@@ -1,70 +1,35 @@
 #!/bin/bash 
- 
-uci -q batch <<- 'EOF'
- 
-# LAN 网络设置
-set network.lan.ipaddr='10.0.0.1' 
- 
-# LuCI 主题设置 
-set luci.main.mediaurlbase='/luci-static/argon' 
- 
-# 禁用 IPv6 向导
-set wizard.default.ipv6='0' 
- 
-# ============================================= 
-# 无线网络配置 (Wireless Configuration)
-# ============================================= 
-# Radio0 设置 (5GHz)
-set wireless.radio0.mu_beamformer='1' 
-set wireless.radio0.country='US' 
-set wireless.radio0.htmode='HE160' 
-set wireless.radio0.channel='149' 
-set wireless.default_radio0.ieee80211r='1'   # 802.11r 快速漫游
- 
-# Radio1 设置 (2.4GHz)
-set wireless.radio1.mu_beamformer='1' 
-set wireless.radio1.country='US' 
-set wireless.default_radio1.ieee80211r='1'   # 802.11r 快速漫游
- 
-# =============================================
-# 系统与服务配置 (System & Services)
-# =============================================
-# UPnP 服务启用
-set upnpd.config.enabled='1' 
- 
-# 主机名设置
-set system.@system[0].hostname='QWRT'
- 
-# ============================================= 
-# PassWall2 代理配置 (PassWall2 Proxy Settings)
-# ============================================= 
-# 节点配置 (Socks5 代理)
-set passwall2.AVVjwzzU=nodes
-set passwall2.AVVjwzzU.remarks=' 自动切换'
-set passwall2.AVVjwzzU.type='Socks' 
-set passwall2.AVVjwzzU.address='127.0.0.1' 
-set passwall2.AVVjwzzU.port='1081' 
- 
-# 全局代理设置
-set passwall2.@global[0].tcp_node='AVVjwzzU'
- 
-# 本地 Socks5 服务端配置 
-set passwall2.oFIfqfES=socks
-set passwall2.oFIfqfES.enabled='1' 
-set passwall2.oFIfqfES.port='1081' 
-set passwall2.oFIfqfES.http_port='0' 
-set passwall2.oFIfqfES.enable_autoswitch='1' 
- 
-EOF 
- 
-# ============================================= 
-# 系统管理 (System Administration)
-# ============================================= 
-# 设置 root 密码
-root_password="root"
-if [ -n "$root_password" ]; then
-  (echo "$root_password"; sleep 1; echo "$root_password") | passwd > /dev/null
-fi
- 
-# 完成提示 
-echo "All configurations applied successfully!"
+# 修改默认网关地址
+change_default_ip() {
+    local new_ip="10.0.0.1"
+
+    # 修改网络配置中的默认 IP 地址
+    uci set network.lan.ipaddr="$new_ip"
+    uci commit network
+}
+
+# 设置主机名信息iStoreNAS
+change_hostname() {
+    local new_hostname="Xwrt"
+
+    # 设置主机名
+    uci set system.@system[0].hostname="$new_hostname"
+    uci commit system
+
+    # 同时更改 /proc/sys/kernel/hostname 文件
+    echo "$new_hostname" > /proc/sys/kernel/hostname
+}
+
+# 追加编译作者信息
+modify_firmware_description() {
+    # 修改 /etc/openwrt_release 文件中的 DISTRIB_DESCRIPTION 字段
+    sed -i "s/\(DISTRIB_DESCRIPTION='.*\)'/\1 Compiled by xding'/" /etc/openwrt_release
+}
+
+# 调用函数
+change_default_ip
+change_hostname
+modify_firmware_description
+
+# 移除脚本文件以确保它只运行一次
+rm -f /etc/uci-defaults/99-custom

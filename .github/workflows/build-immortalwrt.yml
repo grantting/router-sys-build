@@ -47,17 +47,10 @@ jobs:
   
       - name: Build Firmware 
         run: |
-          # 进入目录 
+          cp -r files immortalwrt-imagebuilder-*/
           cd immortalwrt-imagebuilder-* || exit 1 
-          
-          # 检查 files 文件夹是否存在 
-          if [ ! -d "files" ]; then 
-            echo "::error::files directory not found, aborting..."
-            exit 1 
-          fi 
-          
-          # 编译固件 
-          make image PROFILE="${{ inputs.model_id  }}" PACKAGES="${{ inputs.packages  }}" FILES="files" 
+          pwd  # 打印当前目录（应该是 immortalwrt-imagebuilder-xxxx）
+          make image PROFILE="${{ inputs.model_id  }}" PACKAGES="${{ inputs.packages  }}" FILES="files"
           
       - name: Upload Artifacts 
         uses: actions/upload-artifact@v4 
