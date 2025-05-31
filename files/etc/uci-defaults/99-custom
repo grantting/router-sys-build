@@ -26,10 +26,92 @@ modify_firmware_description() {
     sed -i "s/\(DISTRIB_DESCRIPTION='.*\)'/\1 Compiled by xding'/" /etc/openwrt_release
 }
 
+# 设置 root 密码为 "root"（实际使用建议用更强密码！）
+set_root_password() {
+    echo -e "root\nroot" | passwd root >/dev/null 2>&1
+}
+
+set_wizard() {
+    # 设置默认WiFi名称和密码 
+    uci set wizard.default.wifi_ssid='WiFi' 
+    uci set wizard.default.wifi_key='1234567890' 
+    uci commit wizard 
+}
+
+# 设置 WAN 口 LED 常亮（默认行为）
+configure_led_wan() {
+    uci del system.led_wan.dev  2>/dev/null    # 删除旧配置（如存在）
+    uci del system.led_wan.mode  2>/dev/null
+    uci set system.led_wan.trigger='default-on'   # 设置为常亮
+    uci commit system
+}
+
+configure_wireless() {
+    # 获取所有无线接口 
+    local radios=$(uci show wireless | grep -o 'radio[0-9]' | sort -u)
+ 
+    for radio in $radios; do 
+        local ssid=$(uci -q get wireless.default_${radio}.ssid) 
+        local is_5g=0 
+        local is_2g=0 
+ 
+        # 检测SSID后缀（不区分大小写）
+        [[ "$ssid" =~ [5G][5g]$ ]] && is_5g=1 
+        [[ "$ssid" =~ [2].[4G][2.4g]$ ]] && is_2g=1 
+ 
+        if [ "$is_5g" -eq 1 ]; then 
+            echo "检测到 5GHz WiFi (${radio} - SSID: $ssid)，正在优化..."
+            uci set wireless.${radio}.htmode='HE160'
+            uci set wireless.${radio}.channel='auto'
+            uci set wireless.${radio}.cell_density='0'
+            uci set wireless.default_${radio}.ieee80211r='1' 
+            uci set wireless.default_${radio}.ft_over_ds='0' 
+            uci set wireless.default_${radio}.ft_psk_generate_local='1' 
+            echo "[OK] 5GHz 优化完成"
+ 
+        elif [ "$is_2g" -eq 1 ]; then 
+            echo "检测到 2.4GHz WiFi (${radio} - SSID: $ssid)，正在优化..."
+            uci set wireless.${radio}.htmode='HE40'  # 2.4GHz用40MHz频宽 
+            uci set wireless.${radio}.channel='auto'    # 推荐2.4GHz信道 
+            uci set wireless.${radio}.cell_density='0'
+            uci set wireless.${radio}.mu_beamformer='1'  # 启用MU-MIMO 
+            uci set wireless.default_${radio}.ieee80211r='1' 
+            uci set wireless.default_${radio}.ft_over_ds='0' 
+            uci set wireless.default_${radio}.ft_psk_generate_local='1' 
+            echo "[OK] 2.4GHz 优化完成"
+        else 
+            echo "未识别的频段 (${radio} - SSID: $ssid)，跳过配置"
+        fi 
+    done 
+ 
+    uci commit wireless 
+}
+
+timed_reboot(){
+    # 定时重启（每天凌晨3点）
+    uci set timedreboot.cfg017f6a.enable='1' 
+    uci set timedreboot.cfg017f6a.hour='3' 
+    uci set timedreboot.cfg017f6a.minute='0' 
+    uci set timedreboot.cfg017f6a.reboot_delay='5'
+
+    uci commit timedreboot
+}
+
+configure_dhcp(){
+    uci set dhcp.@dnsmasq[0].dns_redirect='1'
+    uci commit dhcp
+}
+ 
 # 调用函数
 change_default_ip
 change_hostname
 modify_firmware_description
+set_root_password
+set_wizard
+configure_led_wan
+configure_wireless
+timed_reboot
+configure_dhcp
 
 # 移除脚本文件以确保它只运行一次
 rm -f /etc/uci-defaults/99-custom
