@@ -69,7 +69,7 @@ configure_taskplan() {
     uci add taskplan stime 
     uci rename taskplan.@stime[-1]='weekly_reboot'
     uci set taskplan.weekly_reboot.enable='1' 
-    uci set taskplan.weekly_reboot.stype='2'          # 周循环类型
+    uci set taskplan.weekly_reboot.stype='1'          # 周循环类型
     uci set taskplan.weekly_reboot.month='*'          # 每月生效 
     uci set taskplan.weekly_reboot.week='0'           # 周日（0-6，0=周日）
     uci set taskplan.weekly_reboot.hour='5'           # 5点 
@@ -97,19 +97,35 @@ configure_vlmcsd() {
 }
 
 configure_passwall() {
-    # 移除旧版显示配置 
-    uci del passwall.@global[0].show_node_info 2>/dev/null
+    # 1. 确保全局配置存在 
+    if ! uci -q get passwall.@global[0] >/dev/null; then
+        uci add passwall global
+    fi
  
-    # 创建SOCKS5代理节点 
-    uci set passwall.3mLsoJW6=nodes 
-    uci set passwall.3mLsoJW6.type='Socks' 
-    uci set passwall.3mLsoJW6.address='127.0.0.1' 
-    uci set passwall.3mLsoJW6.port='1081' 
-    uci set passwall.3mLsoJW6.remarks='自动切换'
+    # 2. 移除旧版显示配置
+    uci del passwall.@global[0].show_node_info 2>/dev/null 
+ 
+    # 3. 创建或更新SOCKS5代理节点
+    local node_id="auto_switch_node"  # 使用固定ID替代随机ID 
     
-    # 提交配置并重启服务
+    # 删除可能已存在的节点 
+    uci delete passwall.$node_id 2>/dev/null
+    
+    # 创建新节点配置 
+    uci set passwall.$node_id=nodes 
+    uci set passwall.$node_id.type='Socks' 
+    uci set passwall.$node_id.address='127.0.0.1' 
+    uci set passwall.$node_id.port='1081' 
+    uci set passwall.$node_id.remarks=' 自动切换'
+    uci set passwall.$node_id.enabled='1'   # 确保启用
+ 
+    # 4. 提交配置 
     uci commit passwall 
-    /etc/init.d/passwall restart 2>/dev/null 
+    
+    # 5. 重启服务（如果已安装）
+    [ -f /etc/init.d/passwall ] && /etc/init.d/passwall restart 2>/dev/null 
+    
+    echo "PassWall SOCKS5代理节点已配置 (ID: $node_id)"
 }
 
 # 主执行流程 
