@@ -18,7 +18,7 @@ on:
       packages:
         description: '选择要编译的包（用空格分隔），可用 -pkg 排除包'
         required: false 
-        default: 'luci-i18n-firewall-zh-cn wpad-basic-mbedtls ds-lite luci-app-advancedplus kmod-fs-ext4 kmod-usb-dwc3 kmod-usb3 kmod-tcp-bbr luci-app-filemanager swconfig kmod-nft-tproxy kmod-nft-socket opkg luci-app-vlmcsd luci-app-package-manager luci-app-diskman luci-app-upnp luci-app-timedreboot luci-app-taskplan luci-app-passwall luci-theme-argon luci-app-wizard -luci-i18n-base-zh-cn'
+        default: 'luci-app-smartdns smartdns luci-i18n-firewall-zh-cn wpad-basic-mbedtls ds-lite luci-app-advancedplus kmod-fs-ext4 kmod-usb-dwc3 kmod-usb3 kmod-tcp-bbr luci-app-filemanager swconfig kmod-nft-tproxy kmod-nft-socket opkg luci-app-vlmcsd luci-app-package-manager luci-app-diskman luci-app-upnp luci-app-timedreboot luci-app-taskplan luci-app-passwall luci-theme-argon luci-app-wizard -luci-i18n-base-zh-cn'
  
 jobs:
   download-build:
