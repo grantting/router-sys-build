@@ -1,127 +1,132 @@
 #!/bin/bash 
-# 修改默认网关地址
+ 
+# 修改默认网关地址 
 change_default_ip() {
-    local new_ip="10.0.0.1"
-
-    # 修改网络配置中的默认 IP 地址
-    uci set network.lan.ipaddr="$new_ip"
-    uci commit network
+    uci set network.lan.ipaddr="10.0.0.1" 
+    uci commit network 
 }
-
-# 设置主机名信息iStoreNAS
+ 
+# 设置主机名 
 change_hostname() {
     local new_hostname="Xwrt"
-
-    # 设置主机名
     uci set system.@system[0].hostname="$new_hostname"
-    uci commit system
-
-    # 同时更改 /proc/sys/kernel/hostname 文件
-    echo "$new_hostname" > /proc/sys/kernel/hostname
+    uci commit system 
+    echo "$new_hostname" > /proc/sys/kernel/hostname 
 }
-
-# 追加编译作者信息
+ 
+# 追加编译作者信息 
 modify_firmware_description() {
-    # 修改 /etc/openwrt_release 文件中的 DISTRIB_DESCRIPTION 字段
-    sed -i "s/\(DISTRIB_DESCRIPTION='.*\)'/\1 Compiled by xding'/" /etc/openwrt_release
+    sed -i "s/\(DISTRIB_DESCRIPTION='.*\)'/\1 Compiled by xding'/" /etc/openwrt_release 
 }
-
-# 设置 root 密码为 "root"（实际使用建议用更强密码！）
+ 
+# 设置root密码 
 set_root_password() {
-    echo -e "root\nroot" | passwd root >/dev/null 2>&1
+    echo -e "root\nroot" | passwd root >/dev/null 2>&1 
 }
-
+ 
+# 配置无线网络 
 configure_wireless() {
-    # 获取所有无线设备 
     local radios=$(uci show wireless | grep -o 'radio[0-9]' | sort -u)
-    local wifi_password="1234567890"  # 统一密码 
+    local wifi_password="1234567890"
+ 
+    [ -z "$radios" ] && return 
  
     for radio in $radios; do 
-        # 获取当前radio的band类型（2g或5g）
         local band=$(uci -q get wireless.${radio}.band)
         
         if [ "$band" = "5g" ]; then 
-            echo "检测到 5GHz WiFi (${radio})，正在配置..."
             uci set wireless.${radio}.htmode='HE160'
             uci set wireless.${radio}.channel='auto'
-            uci set wireless.${radio}.cell_density='0'
-            
-            # 设置SSID和加密 
             uci set wireless.default_${radio}.ssid='WiFi_5G' 
             uci set wireless.default_${radio}.encryption='psk2' 
             uci set wireless.default_${radio}.key="$wifi_password" 
-            uci set wireless.default_${radio}.ieee80211r='1' 
-            uci set wireless.default_${radio}.ft_over_ds='0' 
-            uci set wireless.default_${radio}.ft_psk_generate_local='1' 
-            echo "[OK] 5GHz 配置完成"
  
         elif [ "$band" = "2g" ]; then 
-            echo "检测到 2.4GHz WiFi (${radio})，正在配置..."
             uci set wireless.${radio}.htmode='HE40'
             uci set wireless.${radio}.channel='auto'
-            uci set wireless.${radio}.cell_density='0'
-            uci set wireless.${radio}.mu_beamformer='1'
-            
-            # 设置SSID和加密 
             uci set wireless.default_${radio}.ssid='WiFi_2.4G' 
             uci set wireless.default_${radio}.encryption='psk2' 
             uci set wireless.default_${radio}.key="$wifi_password" 
-            uci set wireless.default_${radio}.ieee80211r='1' 
-            uci set wireless.default_${radio}.ft_over_ds='0' 
-            uci set wireless.default_${radio}.ft_psk_generate_local='1' 
-            echo "[OK] 2.4GHz 配置完成"
-        else 
-            echo "未知频段 (${radio})，跳过配置"
         fi 
     done 
- 
     uci commit wireless 
 }
-
-# 设置 WAN 口 LED 常亮（默认行为）
+ 
+# 配置WAN口LED 
 configure_led_wan() {
-    uci del system.led_wan.dev  2>/dev/null    # 删除旧配置（如存在）
-    uci del system.led_wan.mode  2>/dev/null
-    uci set system.led_wan.trigger='default-on'   # 设置为常亮
-    uci commit system
+    uci del system.led_wan.dev  2>/dev/null 
+    uci del system.led_wan.mode  2>/dev/null 
+    uci set system.led_wan.trigger='default-on' 
+    uci commit system 
 }
-
-timed_reboot() {
-    echo "配置每周定时重启（每周日凌晨3点）..."
  
-    # 检查是否存在定时重启配置，如果不存在则创建 
-    if ! uci -q get timedreboot.@timedreboot[0] >/dev/null; then 
-        uci add timedreboot timedreboot 
-        uci rename timedreboot.@timedreboot[-1]='cfg_reboot'
-    fi 
- 
-    # 设置每周日凌晨3点重启 
-    uci set timedreboot.@timedreboot[0].enable='1'
-    uci set timedreboot.@timedreboot[0].hour='3'
-    uci set timedreboot.@timedreboot[0].minute='0'
-    uci set timedreboot.@timedreboot[0].weekday='0'  # 0=周日，1=周一，...6=周六 
-    uci set timedreboot.@timedreboot[0].reboot_delay='5'
-    uci set timedreboot.@timedreboot[0].enabled='1'  # 确保启用 
- 
-    uci commit timedreboot 
-    echo "[成功] 已设置每周日凌晨3:00定时重启"
+# 配置定时重启 
+configure_taskplan() {
+    # 删除可能存在的旧配置
+    uci delete taskplan.weekly_reboot  2>/dev/null
+    
+    # 创建每周日凌晨5点重启任务
+    uci add taskplan stime 
+    uci rename taskplan.@stime[-1]='weekly_reboot'
+    uci set taskplan.weekly_reboot.enable='1' 
+    uci set taskplan.weekly_reboot.stype='2'          # 周循环类型
+    uci set taskplan.weekly_reboot.month='*'          # 每月生效 
+    uci set taskplan.weekly_reboot.week='0'           # 周日（0-6，0=周日）
+    uci set taskplan.weekly_reboot.hour='5'           # 5点 
+    uci set taskplan.weekly_reboot.minute='0'         # 0分
+    uci set taskplan.weekly_reboot.command='reboot'   # 执行命令 
+    uci set taskplan.weekly_reboot.remarks='每周日凌晨5点自动重启系统'  # 任务备注 
+    
+    uci commit taskplan
+    /etc/init.d/taskplan restart 2>/dev/null
 }
-
+ 
+# 配置DHCP 
 configure_dhcp(){
     uci set dhcp.@dnsmasq[0].dns_redirect='1'
-    uci commit dhcp
+    uci commit dhcp 
 }
  
-# 调用函数
-change_default_ip
-change_hostname
-modify_firmware_description
-set_root_password
-set_wizard
-configure_led_wan
-configure_wireless
-timed_reboot
-configure_dhcp
+# 配置KMS服务器 
+configure_vlmcsd() {
+    uci set vlmcsd.config.enabled='1' 
+    uci set vlmcsd.config.auto_activate='1' 
+    uci set vlmcsd.config.internet_access='1' 
+    uci commit vlmcsd 
+    /etc/init.d/vlmcsd restart 2>/dev/null 
+}
 
-# 移除脚本文件以确保它只运行一次
-rm -f /etc/uci-defaults/99-custom
+configure_passwall() {
+    # 移除旧版显示配置 
+    uci del passwall.@global[0].show_node_info 2>/dev/null
+ 
+    # 创建SOCKS5代理节点 
+    uci set passwall.3mLsoJW6=nodes 
+    uci set passwall.3mLsoJW6.type='Socks' 
+    uci set passwall.3mLsoJW6.address='127.0.0.1' 
+    uci set passwall.3mLsoJW6.port='1081' 
+    uci set passwall.3mLsoJW6.remarks='自动切换'
+    
+    # 提交配置并重启服务
+    uci commit passwall 
+    /etc/init.d/passwall restart 2>/dev/null 
+}
+
+# 主执行流程 
+main() {
+    change_default_ip 
+    change_hostname 
+    modify_firmware_description 
+    set_root_password 
+    configure_led_wan 
+    configure_wireless 
+    configure_taskplan 
+    configure_dhcp 
+    configure_vlmcsd
+    configure_passwall
+    uci commit 
+}
+ 
+main
+
+rm -f /etc/uci-defaults/99-custom 2>/dev/null 
