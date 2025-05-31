@@ -31,11 +31,51 @@ set_root_password() {
     echo -e "root\nroot" | passwd root >/dev/null 2>&1
 }
 
-set_wizard() {
-    # 设置默认WiFi名称和密码 
-    uci set wizard.default.wifi_ssid='WiFi' 
-    uci set wizard.default.wifi_key='1234567890' 
-    uci commit wizard 
+configure_wireless() {
+    # 获取所有无线设备 
+    local radios=$(uci show wireless | grep -o 'radio[0-9]' | sort -u)
+    local wifi_password="1234567890"  # 统一密码 
+ 
+    for radio in $radios; do 
+        # 获取当前radio的band类型（2g或5g）
+        local band=$(uci -q get wireless.${radio}.band)
+        
+        if [ "$band" = "5g" ]; then 
+            echo "检测到 5GHz WiFi (${radio})，正在配置..."
+            uci set wireless.${radio}.htmode='HE160'
+            uci set wireless.${radio}.channel='auto'
+            uci set wireless.${radio}.cell_density='0'
+            
+            # 设置SSID和加密 
+            uci set wireless.default_${radio}.ssid='WiFi_5G' 
+            uci set wireless.default_${radio}.encryption='psk2' 
+            uci set wireless.default_${radio}.key="$wifi_password" 
+            uci set wireless.default_${radio}.ieee80211r='1' 
+            uci set wireless.default_${radio}.ft_over_ds='0' 
+            uci set wireless.default_${radio}.ft_psk_generate_local='1' 
+            echo "[OK] 5GHz 配置完成"
+ 
+        elif [ "$band" = "2g" ]; then 
+            echo "检测到 2.4GHz WiFi (${radio})，正在配置..."
+            uci set wireless.${radio}.htmode='HE40'
+            uci set wireless.${radio}.channel='auto'
+            uci set wireless.${radio}.cell_density='0'
+            uci set wireless.${radio}.mu_beamformer='1'
+            
+            # 设置SSID和加密 
+            uci set wireless.default_${radio}.ssid='WiFi_2.4G' 
+            uci set wireless.default_${radio}.encryption='psk2' 
+            uci set wireless.default_${radio}.key="$wifi_password" 
+            uci set wireless.default_${radio}.ieee80211r='1' 
+            uci set wireless.default_${radio}.ft_over_ds='0' 
+            uci set wireless.default_${radio}.ft_psk_generate_local='1' 
+            echo "[OK] 2.4GHz 配置完成"
+        else 
+            echo "未知频段 (${radio})，跳过配置"
+        fi 
+    done 
+ 
+    uci commit wireless 
 }
 
 # 设置 WAN 口 LED 常亮（默认行为）
@@ -46,55 +86,25 @@ configure_led_wan() {
     uci commit system
 }
 
-configure_wireless() {
-    # 获取所有无线接口 
-    local radios=$(uci show wireless | grep -o 'radio[0-9]' | sort -u)
+timed_reboot() {
+    echo "配置每周定时重启（每周日凌晨3点）..."
  
-    for radio in $radios; do 
-        local ssid=$(uci -q get wireless.default_${radio}.ssid) 
-        local is_5g=0 
-        local is_2g=0 
+    # 检查是否存在定时重启配置，如果不存在则创建 
+    if ! uci -q get timedreboot.@timedreboot[0] >/dev/null; then 
+        uci add timedreboot timedreboot 
+        uci rename timedreboot.@timedreboot[-1]='cfg_reboot'
+    fi 
  
-        # 检测SSID后缀（不区分大小写）
-        [[ "$ssid" =~ [5G][5g]$ ]] && is_5g=1 
-        [[ "$ssid" =~ [2].[4G][2.4g]$ ]] && is_2g=1 
+    # 设置每周日凌晨3点重启 
+    uci set timedreboot.@timedreboot[0].enable='1'
+    uci set timedreboot.@timedreboot[0].hour='3'
+    uci set timedreboot.@timedreboot[0].minute='0'
+    uci set timedreboot.@timedreboot[0].weekday='0'  # 0=周日，1=周一，...6=周六 
+    uci set timedreboot.@timedreboot[0].reboot_delay='5'
+    uci set timedreboot.@timedreboot[0].enabled='1'  # 确保启用 
  
-        if [ "$is_5g" -eq 1 ]; then 
-            echo "检测到 5GHz WiFi (${radio} - SSID: $ssid)，正在优化..."
-            uci set wireless.${radio}.htmode='HE160'
-            uci set wireless.${radio}.channel='auto'
-            uci set wireless.${radio}.cell_density='0'
-            uci set wireless.default_${radio}.ieee80211r='1' 
-            uci set wireless.default_${radio}.ft_over_ds='0' 
-            uci set wireless.default_${radio}.ft_psk_generate_local='1' 
-            echo "[OK] 5GHz 优化完成"
- 
-        elif [ "$is_2g" -eq 1 ]; then 
-            echo "检测到 2.4GHz WiFi (${radio} - SSID: $ssid)，正在优化..."
-            uci set wireless.${radio}.htmode='HE40'  # 2.4GHz用40MHz频宽 
-            uci set wireless.${radio}.channel='auto'    # 推荐2.4GHz信道 
-            uci set wireless.${radio}.cell_density='0'
-            uci set wireless.${radio}.mu_beamformer='1'  # 启用MU-MIMO 
-            uci set wireless.default_${radio}.ieee80211r='1' 
-            uci set wireless.default_${radio}.ft_over_ds='0' 
-            uci set wireless.default_${radio}.ft_psk_generate_local='1' 
-            echo "[OK] 2.4GHz 优化完成"
-        else 
-            echo "未识别的频段 (${radio} - SSID: $ssid)，跳过配置"
-        fi 
-    done 
- 
-    uci commit wireless 
-}
-
-timed_reboot(){
-    # 定时重启（每天凌晨3点）
-    uci set timedreboot.cfg017f6a.enable='1' 
-    uci set timedreboot.cfg017f6a.hour='3' 
-    uci set timedreboot.cfg017f6a.minute='0' 
-    uci set timedreboot.cfg017f6a.reboot_delay='5'
-
-    uci commit timedreboot
+    uci commit timedreboot 
+    echo "[成功] 已设置每周日凌晨3:00定时重启"
 }
 
 configure_dhcp(){
