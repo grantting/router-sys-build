@@ -97,35 +97,20 @@ configure_vlmcsd() {
 }
 
 configure_passwall() {
-    # 1. 确保全局配置存在 
-    if ! uci -q get passwall.@global[0] >/dev/null; then
-        uci add passwall global
-    fi
- 
-    # 2. 移除旧版显示配置
-    uci del passwall.@global[0].show_node_info 2>/dev/null 
- 
-    # 3. 创建或更新SOCKS5代理节点
-    local node_id="auto_switch_node"  # 使用固定ID替代随机ID 
+     # 定义节点参数 
+    local node_id="Unccgmox"
     
-    # 删除可能已存在的节点 
-    uci delete passwall.$node_id 2>/dev/null
-    
-    # 创建新节点配置 
+    # 配置节点 
+    uci delete passwall.$node_id 2>/dev/null 
     uci set passwall.$node_id=nodes 
+    uci set passwall.$node_id.remarks=' 自动切换'
     uci set passwall.$node_id.type='Socks' 
     uci set passwall.$node_id.address='127.0.0.1' 
     uci set passwall.$node_id.port='1081' 
-    uci set passwall.$node_id.remarks=' 自动切换'
-    uci set passwall.$node_id.enabled='1'   # 确保启用
- 
-    # 4. 提交配置 
+    uci set passwall.$node_id.enabled='1' 
+    
+    # 提交并重启 
     uci commit passwall 
-    
-    # 5. 重启服务（如果已安装）
-    [ -f /etc/init.d/passwall ] && /etc/init.d/passwall restart 2>/dev/null 
-    
-    echo "PassWall SOCKS5代理节点已配置 (ID: $node_id)"
 }
 
 # 主执行流程 
