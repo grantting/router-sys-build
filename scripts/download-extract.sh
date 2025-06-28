@@ -6,7 +6,7 @@ target_slash=$2
 target_hyphen=$3 
  
 echo "正在下载ImageBuilder..."
-URL="https://immortalwrt.kyarucloud.moe/releases/$version/targets/$target_slash/immortalwrt-imagebuilder-$version-$target_hyphen.Linux-x86_64.tar.zst" 
+URL="https://downloads.immortalwrt.org/releases/$version/targets/$target_slash/immortalwrt-imagebuilder-$version-$target_hyphen.Linux-x86_64.tar.zst" 
 echo "下载地址: $URL"
  
 if ! wget "$URL" -O imagebuilder.tar.zst;  then 
