@@ -5,7 +5,7 @@ version=$1
 model_id=$2 
  
 echo "正在获取目标平台信息..."
-JSON_URL="https://immortalwrt.kyarucloud.moe/releases/$version/.overview.json" 
+JSON_URL="https://downloads.immortalwrt.org/releases/$version/.overview.json" 
 echo "从以下地址获取JSON: $JSON_URL"
  
 if ! curl -sL "$JSON_URL" -o overview.json;  then 
