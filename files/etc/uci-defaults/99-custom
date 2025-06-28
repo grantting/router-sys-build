@@ -96,22 +96,6 @@ configure_vlmcsd() {
     /etc/init.d/vlmcsd restart 2>/dev/null 
 }
 
-configure_passwall() {
-     # 定义节点参数 
-    local node_id="Unccgmox"
-    
-    # 配置节点 
-    uci delete passwall.$node_id 2>/dev/null 
-    uci set passwall.$node_id=nodes 
-    uci set passwall.$node_id.remarks=' 自动切换'
-    uci set passwall.$node_id.type='Socks' 
-    uci set passwall.$node_id.address='127.0.0.1' 
-    uci set passwall.$node_id.port='1081' 
-    uci set passwall.$node_id.enabled='1' 
-    
-    # 提交并重启 
-    uci commit passwall 
-}
 
 # 主执行流程 
 main() {
@@ -124,7 +108,6 @@ main() {
     configure_taskplan 
     configure_dhcp 
     configure_vlmcsd
-    configure_passwall
     uci commit 
 }
  
