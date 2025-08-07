@@ -102,6 +102,41 @@ configure_vlmcsd() {
     /etc/init.d/vlmcsd restart 2>/dev/null 
 }
 
+# 配置Passwall自动切换和SOCKS设置
+configure_passwall() {
+    # 确保Passwall已安装
+    if [ -f /etc/config/passwall ]; then
+        # 1. 先添加SOCKS节点 (示例配置，请根据实际情况修改)
+        local socks_node_name="My_SOCKS_Proxy"
+        uci add passwall nodes >/dev/null
+        uci set passwall.@nodes[-1].name="$socks_node_name"
+        uci set passwall.@nodes[-1].type="Socks"
+        uci set passwall.@nodes[-1].address="your.socks.server.com"   # 替换为你的SOCKS服务器地址 
+        uci set passwall.@nodes[-1].port="1080"                     # 替换为你的SOCKS端口
+        uci set passwall.@nodes[-1].username="username"             # 如果需要认证
+        uci set passwall.@nodes[-1].password="password"             # 如果需要认证
+        uci set passwall.@nodes[-1].remarks="My SOCKS Proxy Server" # 备注信息 
+        
+        # 2. 然后启用SOCKS开关 
+        uci set passwall.@global[0].socks_enabled='1'
+        uci set passwall.@global[0].socks_port='1080'               # 本地SOCKS监听端口
+        
+        # 3. 最后配置自动切换 
+        uci set passwall.@global_other[0].auto_switch_enable='1'
+        uci set passwall.@global_other[0].auto_switch_check_interval='300'
+        uci set passwall.@global_other[0].auto_switch_timeout='5000'
+        uci set passwall.@global_other[0].auto_switch_try_count='3'
+        uci set passwall.@global_other[0].auto_switch_test_url='www.google.com' 
+        
+        uci commit passwall
+        /etc/init.d/passwall restart 2>/dev/null
+        
+        echo "已配置SOCKS节点并启用SOCKS服务"
+    else 
+        echo "Passwall未安装，跳过配置"
+    fi 
+}
+ 
 
 # 主执行流程 
 main() {
@@ -114,6 +149,7 @@ main() {
     configure_taskplan 
     configure_dhcp 
     configure_vlmcsd
+    configure_passwall
     uci commit 
 }
  
