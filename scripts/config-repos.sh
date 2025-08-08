@@ -27,5 +27,8 @@ cat repositories.conf
 echo "CONFIG_PACKAGE_default-settings-chn=y" >> .config 
 echo "CONFIG_PACKAGE_luci-lua-runtime=n" >> .config  # 显式禁用包
 
+echo 'CONFIG_XDP_SOCKETS=y' >> .config
+echo 'CONFIG_XDP_SOCKETS_DIAG=y' >> .config 
+
 echo "当前配置修改："
 grep -E "default-settings" .config 
