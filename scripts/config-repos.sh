@@ -24,8 +24,8 @@ echo "当前软件源配置："
 cat repositories.conf  
 
 # 解决 simple-obfs 冲突
-sed -i '/^CONFIG_PACKAGE_simple-obfs=y/d' .config  # 删除旧配置 
-echo "CONFIG_PACKAGE_simple-obfs-client=y" >> .config  # 确保使用新版
+echo "CONFIG_PACKAGE_simple-obfs=n" >> .config
+echo "CONFIG_PACKAGE_simple-obfs-client=y" >> .config
 
 # 解决默认设置冲突 
 echo "CONFIG_PACKAGE_default-settings-chn=y" >> .config 
