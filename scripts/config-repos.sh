@@ -23,11 +23,25 @@ echo "src/gz kiddin9_packages https://dl.openwrt.ai/releases/24.10/packages/$ARC
 echo "当前软件源配置："
 cat repositories.conf  
 
-# 检查 .config 是否启用了冲突包
-if grep -q "CONFIG_PACKAGE_simple-obfs=y" .config; then
-    echo "[INFO] 检测到 simple-obfs 已启用，自动禁用 simple-obfs-client..."
-    sed -i 's/CONFIG_PACKAGE_simple-obfs-client=y/# CONFIG_PACKAGE_simple-obfs-client is not set/g' .config 
-fi 
+echo '
+define KernelPackage/xdp-sockets-diag
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=PF_XDP sockets monitoring interface support for ss utility
+  KCONFIG:= \
+	CONFIG_XDP_SOCKETS=y \
+	CONFIG_XDP_SOCKETS_DIAG
+  FILES:=$(LINUX_DIR)/net/xdp/xsk_diag.ko
+  AUTOLOAD:=$(call AutoLoad,31,xsk_diag)
+endef
+
+define KernelPackage/xdp-sockets-diag/description
+ Support for PF_XDP sockets monitoring interface used by the ss tool
+endef
+
+$(eval $(call KernelPackage,xdp-sockets-diag))
+' >> package/kernel/linux/modules/netsupport.mk
+
+echo 'CONFIG_PACKAGE_kmod-xdp-sockets-diag=y' >> .config
 
 # 解决默认设置冲突 
 echo "CONFIG_PACKAGE_default-settings-chn=y" >> .config 

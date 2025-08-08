@@ -19,7 +19,8 @@ on:
       packages:
         description: '选择要编译的包（用空格分隔），可用 -pkg 排除包'
         required: false 
-        default: 'luci-i18n-passwall-zh-cn luci-i18n-package-manager-zh-cn luci-app-quickstart luci-i18n-firewall-zh-cn luci-app-advancedplus kmod-fs-ext4 kmod-usb-dwc3 kmod-usb3 kmod-tcp-bbr swconfig kmod-nft-tproxy kmod-nft-socket opkg luci-app-vlmcsd luci-app-diskman luci-app-upnp luci-app-timedreboot luci-app-taskplan luci-theme-argon luci-app-wizard luci-i18n-base-zh-cn' 
+        default: 'luci-i18n-daed-zh-cn luci-i18n-package-manager-zh-cn luci-app-quickstart luci-i18n-firewall-zh-cn luci-app-advancedplus kmod-fs-ext4 kmod-usb-dwc3 kmod-usb3 kmod-tcp-bbr swconfig kmod-nft-tproxy kmod-nft-socket opkg luci-app-vlmcsd luci-app-diskman luci-app-upnp luci-app-timedreboot luci-app-taskplan luci-theme-argon luci-app-wizard luci-i18n-base-zh-cn' 
+        
 jobs:
   download-build:
     runs-on: ubuntu-22.04 
@@ -48,14 +49,9 @@ jobs:
       - name: Build Firmware 
         run: |
           cp -r files immortalwrt-imagebuilder-*/
-          cd immortalwrt-imagebuilder-* || exit 1 
-      
-          # 允许 opkg 覆盖文件 
-          mkdir -p files/etc/opkg 
-          echo "option force_overwrite 1" > files/etc/opkg.conf  
-      
+          cd immortalwrt-imagebuilder-* || exit 1
           make image PROFILE="${{ inputs.model_id  }}" PACKAGES="${{ inputs.packages  }}" FILES="files"
-          
+                    
       - name: Upload Artifacts 
         uses: actions/upload-artifact@v4 
         with:
