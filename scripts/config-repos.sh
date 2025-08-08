@@ -23,6 +23,12 @@ echo "src/gz kiddin9_packages https://dl.openwrt.ai/releases/24.10/packages/$ARC
 echo "当前软件源配置："
 cat repositories.conf  
 
+# 检查 .config 是否启用了冲突包
+if grep -q "CONFIG_PACKAGE_simple-obfs=y" .config; then
+    echo "[INFO] 检测到 simple-obfs 已启用，自动禁用 simple-obfs-client..."
+    sed -i 's/CONFIG_PACKAGE_simple-obfs-client=y/# CONFIG_PACKAGE_simple-obfs-client is not set/g' .config 
+fi 
+
 # 解决默认设置冲突 
 echo "CONFIG_PACKAGE_default-settings-chn=y" >> .config 
 echo "CONFIG_PACKAGE_luci-lua-runtime=n" >> .config  # 显式禁用包
