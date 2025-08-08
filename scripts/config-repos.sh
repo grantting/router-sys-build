@@ -23,11 +23,6 @@ echo "src/gz kiddin9_packages https://dl.openwrt.ai/releases/24.10/packages/$ARC
 echo "当前软件源配置："
 cat repositories.conf  
 
-# 解决 simple-obfs 冲突
-echo "CONFIG_PACKAGE_simple-obfs=n" >> .config
-echo "CONFIG_PACKAGE_simple-obfs-server=n" >> .config
-echo "CONFIG_PACKAGE_simple-obfs-client=y" >> .config
-
 # 解决默认设置冲突 
 echo "CONFIG_PACKAGE_default-settings-chn=y" >> .config 
 echo "CONFIG_PACKAGE_luci-lua-runtime=n" >> .config  # 显式禁用包
