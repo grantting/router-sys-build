@@ -28,36 +28,38 @@ set_root_password() {
 configure_wireless() {
     local radios=$(uci show wireless | grep -o 'radio[0-9]' | sort -u)
     local wifi_password="1234567890"
- 
-    [ -z "$radios" ] && return 
- 
-    for radio in $radios; do 
-        local band=$(uci -q get wireless.${radio}.band)
+    
+    [ -z "$radios" ] && return
+    
+    for radio in $radios; do
+        local band=$(uci -q get wireless.${radio}.band) 
+        local prefix="wireless.default_${radio}" 
         
-        if [ "$band" = "5g" ]; then 
-            uci set wireless.${radio}.htmode='HE160'
-            uci set wireless.${radio}.channel='auto'
-            uci set wireless.default_${radio}.ssid='WiFi_5G' 
-            uci set wireless.default_${radio}.encryption='psk2' 
-            uci set wireless.default_${radio}.key="$wifi_password" 
-            uci set wireless.default_${radio}.ieee80211r='1'
-            uci set wireless.default_${radio}.ft_over_ds='0'
-            uci set wireless.default_${radio}.ft_psk_generate_local='1'
- 
-        elif [ "$band" = "2g" ]; then 
-            uci set wireless.${radio}.htmode='HE40'
-            uci set wireless.${radio}.channel='auto'
-            uci set wireless.default_${radio}.ssid='WiFi_2.4G' 
-            uci set wireless.default_${radio}.encryption='psk2' 
-            uci set wireless.default_${radio}.key="$wifi_password" 
-            uci set wireless.default_${radio}.ieee80211r='1'
-            uci set wireless.default_${radio}.ft_over_ds='0'
-            uci set wireless.default_${radio}.ft_psk_generate_local='1'
-        fi 
+        # 通用无线配置
+        uci set wireless.${radio}.htmode=$([ "$band" = "5g" ] && echo "HE160" || echo "HE40")
+        uci set wireless.${radio}.channel='auto'
+        uci set wireless.${radio}.mu_beamformer='1'  # MU-MIMO
+        uci set wireless.${radio}.mu_sounding='1'    # MU-MIMO 
+        uci set wireless.${radio}.beamforming='1'    # 波束成形
+        
+        # 无线接口配置 
+        uci set ${prefix}.ssid="WiFi_$([ "$band" = "5g" ] && echo "5G" || echo "2.4G")"
+        uci set ${prefix}.encryption='psk2'
+        uci set ${prefix}.key="$wifi_password"
+        
+        # 快速漫游配置 
+        uci set ${prefix}.ieee80211r='1'            
+        uci set ${prefix}.ft_psk_generate_local='0' 
+        uci set ${prefix}.ft_over_ds='0'           
+        uci set ${prefix}.ieee80211k='1'          
+        uci set ${prefix}.bss_transition='1'      
+        uci set ${prefix}.ieee80211v='1'          
+        uci set ${prefix}.disassoc_low_ack='0'    
     done 
-    uci commit wireless 
+    
+    uci commit wireless
 }
- 
+
 # 配置WAN口LED 
 configure_led_wan() {
     uci del system.led_wan.dev  2>/dev/null 
@@ -102,41 +104,26 @@ configure_vlmcsd() {
     /etc/init.d/vlmcsd restart 2>/dev/null 
 }
 
-# 配置Passwall自动切换和SOCKS设置
+# 配置Passwall
 configure_passwall() {
-    # 确保Passwall已安装
-    if [ -f /etc/config/passwall ]; then
-        # 1. 先添加SOCKS节点 (示例配置，请根据实际情况修改)
-        local socks_node_name="My_SOCKS_Proxy"
-        uci add passwall nodes >/dev/null
-        uci set passwall.@nodes[-1].name="$socks_node_name"
-        uci set passwall.@nodes[-1].type="Socks"
-        uci set passwall.@nodes[-1].address="your.socks.server.com"   # 替换为你的SOCKS服务器地址 
-        uci set passwall.@nodes[-1].port="1080"                     # 替换为你的SOCKS端口
-        uci set passwall.@nodes[-1].username="username"             # 如果需要认证
-        uci set passwall.@nodes[-1].password="password"             # 如果需要认证
-        uci set passwall.@nodes[-1].remarks="My SOCKS Proxy Server" # 备注信息 
-        
-        # 2. 然后启用SOCKS开关 
-        uci set passwall.@global[0].socks_enabled='1'
-        uci set passwall.@global[0].socks_port='1080'               # 本地SOCKS监听端口
-        
-        # 3. 最后配置自动切换 
-        uci set passwall.@global_other[0].auto_switch_enable='1'
-        uci set passwall.@global_other[0].auto_switch_check_interval='300'
-        uci set passwall.@global_other[0].auto_switch_timeout='5000'
-        uci set passwall.@global_other[0].auto_switch_try_count='3'
-        uci set passwall.@global_other[0].auto_switch_test_url='www.google.com' 
-        
-        uci commit passwall
-        /etc/init.d/passwall restart 2>/dev/null
-        
-        echo "已配置SOCKS节点并启用SOCKS服务"
-    else 
-        echo "Passwall未安装，跳过配置"
-    fi 
-}
- 
+    # 添加一个名为"自动切换"的Socks节点
+    uci set passwall.@nodes[0].enabled='1' 
+    uci set passwall.@nodes[0].name='自动切换'
+    uci set passwall.@nodes[0].type='Socks'
+    uci set passwall.@nodes[0].address='127.0.0.1'
+    uci set passwall.@nodes[0].port='1081'
+    uci set passwall.@nodes[0].socks_port='1081'
+    uci set passwall.@nodes[0].socks_enabled='1'
+    
+    # 设置TCP节点为"自动切换"
+    uci set passwall.@global[0].tcp_node='自动切换'
+    
+    # 提交更改
+    uci commit passwall 
+    
+    # 重启PassWall服务使更改生效
+    /etc/init.d/passwall restart 
+} 
 
 # 主执行流程 
 main() {
