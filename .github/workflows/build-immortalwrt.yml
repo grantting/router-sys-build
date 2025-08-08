@@ -19,8 +19,7 @@ on:
       packages:
         description: '选择要编译的包（用空格分隔），可用 -pkg 排除包'
         required: false 
-        default: '-simple-obfs dnsmasq-full luci-i18n-package-manager-zh-cn luci-app-quickstart luci-i18n-firewall-zh-cn luci-app-advancedplus kmod-fs-ext4 kmod-usb-dwc3 kmod-usb3 kmod-tcp-bbr swconfig kmod-nft-tproxy kmod-nft-socket opkg luci-app-vlmcsd luci-app-diskman luci-app-upnp luci-app-timedreboot luci-app-taskplan luci-app-passwall luci-theme-argon luci-app-wizard luci-i18n-base-zh-cn'
- 
+        default: 'dnsmasq-full luci-i18n-package-manager-zh-cn luci-app-quickstart luci-i18n-firewall-zh-cn luci-app-advancedplus kmod-fs-ext4 kmod-usb-dwc3 kmod-usb3 kmod-tcp-bbr swconfig kmod-nft-tproxy kmod-nft-socket opkg luci-app-vlmcsd luci-app-diskman luci-app-upnp luci-app-timedreboot luci-app-taskplan luci-app-passwall luci-theme-argon luci-app-wizard luci-i18n-base-zh-cn -simple-obfs' 
 jobs:
   download-build:
     runs-on: ubuntu-22.04 
@@ -50,20 +49,11 @@ jobs:
         run: |
           cp -r files immortalwrt-imagebuilder-*/
           cd immortalwrt-imagebuilder-* || exit 1
-          
-          # ====== 添加冲突处理机制 ======
-          # 1. 移除冲突包 simple-obfs 
-          sed -i '/simple-obfs/d' repositories.conf 
-          
-          # 2. 添加强制覆盖参数
-          export OPKG_EXTRA_ARGS="--force-overwrite"
-      
-          pwd
-          make image PROFILE="${{ inputs.model_id  }}" \
-            PACKAGES="${{ inputs.packages  }}" \
-            FILES="files"
-          # ====== 结束修改 ======
-
+          # 强制移除冲突包（如果存在）
+          sed -i '/^CONFIG_PACKAGE_simple-obfs=y/d' .config  # 删除旧配置 
+          echo "CONFIG_PACKAGE_simple-obfs-client=y" >> .config  # 确保使用新版 
+          make image PROFILE="${{ inputs.model_id  }}" PACKAGES="${{ inputs.packages  }}" FILES="files"
+                    
       - name: Upload Artifacts 
         uses: actions/upload-artifact@v4 
         with:
