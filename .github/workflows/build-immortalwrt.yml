@@ -1,4 +1,4 @@
-name: Build ImmortalWRT 
+name: Build Xwrt 
  
 on:
   workflow_dispatch:
@@ -20,7 +20,7 @@ on:
         description: '选择要编译的包（用空格分隔），可用 -pkg 排除包'
         required: false 
         default: 'luci-i18n-daed-zh-cn luci-i18n-package-manager-zh-cn luci-app-quickstart luci-i18n-firewall-zh-cn luci-app-advancedplus kmod-fs-ext4 kmod-usb-dwc3 kmod-usb3 kmod-tcp-bbr swconfig kmod-nft-tproxy kmod-nft-socket opkg luci-app-vlmcsd luci-app-diskman luci-app-upnp luci-app-timedreboot luci-app-taskplan luci-theme-argon luci-app-wizard luci-i18n-base-zh-cn' 
-        
+
 jobs:
   download-build:
     runs-on: ubuntu-22.04 
@@ -50,6 +50,27 @@ jobs:
         run: |
           cp -r files immortalwrt-imagebuilder-*/
           cd immortalwrt-imagebuilder-* || exit 1
+
+          echo '
+          define KernelPackage/xdp-sockets-diag
+            SUBMENU:=$(NETWORK_SUPPORT_MENU)
+            TITLE:=PF_XDP sockets monitoring interface support for ss utility
+            KCONFIG:= \
+            CONFIG_XDP_SOCKETS=y \
+            CONFIG_XDP_SOCKETS_DIAG
+            FILES:=$(LINUX_DIR)/net/xdp/xsk_diag.ko
+            AUTOLOAD:=$(call AutoLoad,31,xsk_diag)
+          endef
+
+          define KernelPackage/xdp-sockets-diag/description
+          Support for PF_XDP sockets monitoring interface used by the ss tool
+          endef
+
+          $(eval $(call KernelPackage,xdp-sockets-diag))
+          ' >> package/kernel/linux/modules/netsupport.mk
+
+          echo 'CONFIG_PACKAGE_kmod-xdp-sockets-diag=y' >> .config
+
           make image PROFILE="${{ inputs.model_id  }}" PACKAGES="${{ inputs.packages  }}" FILES="files"
                     
       - name: Upload Artifacts 
