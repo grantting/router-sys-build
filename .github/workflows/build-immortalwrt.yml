@@ -48,10 +48,13 @@ jobs:
       - name: Build Firmware 
         run: |
           cp -r files immortalwrt-imagebuilder-*/
-          cd immortalwrt-imagebuilder-* || exit 1 
-          echo "force-overwrite" >> repositories.conf   # 允许覆盖文件 
+          cd immortalwrt-imagebuilder-* || exit 1
+          
+          # 修改 simple-obfs-client 的二进制路径（示例）
+          sed -i 's/\/usr\/bin\/obfs-local/\/usr\/bin\/obfs-client/g' packages/simple-obfs-client/Makefile 
+          
           make image PROFILE="${{ inputs.model_id  }}" PACKAGES="${{ inputs.packages  }}" FILES="files"
-                              
+          
       - name: Upload Artifacts 
         uses: actions/upload-artifact@v4 
         with:
