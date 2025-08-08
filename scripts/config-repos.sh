@@ -25,6 +25,7 @@ cat repositories.conf
 
 # 解决 simple-obfs 冲突
 echo "CONFIG_PACKAGE_simple-obfs=n" >> .config
+echo "CONFIG_PACKAGE_simple-obfs-server=n" >> .config
 echo "CONFIG_PACKAGE_simple-obfs-client=y" >> .config
 
 # 解决默认设置冲突 
