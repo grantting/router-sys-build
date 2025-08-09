@@ -48,6 +48,8 @@ jobs:
   
       - name: Build Firmware 
         run: |
+          bash scripts/files_generate.sh
+          
           cp -r files immortalwrt-imagebuilder-*/
           cd immortalwrt-imagebuilder-* || exit 1
           

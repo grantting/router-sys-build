@@ -27,19 +27,5 @@ cat repositories.conf
 echo "CONFIG_PACKAGE_default-settings-chn=y" >> .config 
 echo "CONFIG_PACKAGE_luci-lua-runtime=n" >> .config  # 显式禁用包
 
-# opkg 配置文件
-mkdir -p files/etc/opkg/
-cat > files/etc/opkg/customfeeds.conf  <<EOF
-src/gz kiddin9_packages https://dl.openwrt.ai/releases/24.10/packages/$ARCH_PACKAGES/kiddin9
-EOF
-
-mkdir -p files/etc/
-cat > files/etc/opkg.conf  <<EOF 
-dest root /
-dest ram /tmp 
-lists_dir ext /var/opkg-lists
-option overlay_root /overlay 
-EOF 
-
 echo "当前配置修改："
 grep -E "default-settings" .config 
