@@ -67,5 +67,4 @@ jobs:
         with:
           name: firmware-${{ inputs.model_id  }}-${{ inputs.version  }}-${{ steps.date.outputs.current_time  }}
           path: |
-            immortalwrt-imagebuilder-*/bin/targets/${{ steps.get-target.outputs.target_platform_slash  }}/*.bin
-            immortalwrt-imagebuilder-*/bin/targets/${{ steps.get-target.outputs.target_platform_slash  }}/*.ubi 
+            immortalwrt-imagebuilder-*/bin/targets/${{ steps.get-target.outputs.target_platform_slash  }}/*
