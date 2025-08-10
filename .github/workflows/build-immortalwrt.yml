@@ -6,7 +6,7 @@ on:
       version:
         description: '输入目标版本号（例如24.10.0）'
         required: true 
-        default: '24.10.2'
+        default: '24.10.1'
       model_id:
         description: '选择机型ID'
         required: true 
@@ -57,7 +57,10 @@ jobs:
                     
       - name: Get timestamp 
         id: date
-        run: echo "current_time=$(date +'%Y%m%d-%H%M')" >> $GITHUB_OUTPUT
+        run: 
+          export TZ='Asia/Shanghai'
+
+          echo "current_time=$(date +'%Y%m%d-%H%M')" >> $GITHUB_OUTPUT
       
       - name: Upload firmware files (.bin/.ubi)
         uses: actions/upload-artifact@v4
