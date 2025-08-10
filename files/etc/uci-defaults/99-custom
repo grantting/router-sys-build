@@ -89,12 +89,6 @@ configure_taskplan() {
     /etc/init.d/taskplan restart 2>/dev/null
 }
  
-# 配置DHCP 
-configure_dhcp(){
-    uci set dhcp.@dnsmasq[0].dns_redirect='1'
-    uci commit dhcp 
-}
- 
 # 配置KMS服务器 
 configure_vlmcsd() {
     uci set vlmcsd.config.enabled='1' 
@@ -102,11 +96,6 @@ configure_vlmcsd() {
     uci set vlmcsd.config.internet_access='1' 
     uci commit vlmcsd 
     /etc/init.d/vlmcsd restart 2>/dev/null 
-}
-
-# 配置Passwall 
-configure_passwall() {
-    
 }
 
 # 主执行流程 
@@ -120,7 +109,6 @@ main() {
     configure_taskplan 
     configure_dhcp 
     configure_vlmcsd
-    configure_passwall
     uci commit 
 }
  
