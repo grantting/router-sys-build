@@ -106,30 +106,17 @@ configure_vlmcsd() {
 
 # 配置Passwall 
 configure_passwall() {
-    # 确保passwall配置存在 
-    uci -q get passwall.@nodes[0] >/dev/null || {
-        uci add passwall nodes
-        uci commit passwall 
-    }
- 
-    # 添加新节点配置 
-    local node_id=$(uci add passwall nodes)  # 获取新节点的ID
-    uci batch <<EOF 
-set passwall.$node_id.remarks=' 香港节点'
-set passwall.$node_id.protocol='v2ray' 
-set passwall.$node_id.address='hk.example.com' 
-set passwall.$node_id.port='443' 
-set passwall.$node_id.username='user1' 
-set passwall.$node_id.security='auto' 
-EOF 
- 
-    # 提交并重启服务
-    uci commit passwall 
-    if /etc/init.d/passwall enabled; then
-        /etc/init.d/passwall restart 2>/dev/null || /etc/init.d/passwall start 
-    fi 
-    
-    echo "节点已添加，ID: $node_id" 
+    # 在 passwall 中添加一个新的 nodes 节点
+    uci add passwall nodes
+
+    usleep 100000  # 100毫秒延迟
+
+    uci set passwall.@nodes[-1].remarks='自动切换'
+    uci set passwall.@nodes[-1].type='Socks'
+    uci set passwall.@nodes[-1].address='127.0.0.1'
+    uci set passwall.@nodes[-1].port='1081'
+    # 提交更改
+    uci commit passwall
 }
 
 # 主执行流程 
