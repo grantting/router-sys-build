@@ -106,17 +106,7 @@ configure_vlmcsd() {
 
 # 配置Passwall 
 configure_passwall() {
-    uci add passwall nodes  # 创建匿名节点配置节，类型为nodes 
-
-    uci set passwall.@nodes[-1].remarks='香港节点'  # 节点备注名 
-    uci set passwall.@nodes[-1].protocol='v2ray'   # 协议类型 
-    uci set passwall.@nodes[-1].address='hk.example.com'   # 服务器地址 
-    uci set passwall.@nodes[-1].port='443'         # 端口 
-    uci set passwall.@nodes[-1].username='user1'   # VMess用户名（若为Trojan/SS则用password）
-    uci set passwall.@nodes[-1].security='auto'    # 加密方式 
-
-    uci commit passwall    # 提交配置到文件
-    service passwall restart  # 重启Passwall生效 
+    
 }
 
 # 主执行流程 
