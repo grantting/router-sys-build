@@ -19,7 +19,7 @@ on:
       packages:
         description: '选择要编译的包（用空格分隔），可用 -pkg 排除包'
         required: false 
-        default: 'luci-app-ttyd luci-app-passwall luci-i18n-package-manager-zh-cn luci-app-quickstart luci-i18n-firewall-zh-cn luci-app-advancedplus kmod-fs-ext4 kmod-usb-dwc3 kmod-usb3 kmod-tcp-bbr swconfig kmod-nft-tproxy kmod-nft-socket opkg luci-app-vlmcsd luci-app-diskman luci-app-upnp luci-app-timedreboot luci-app-taskplan luci-theme-argon luci-app-wizard luci-i18n-base-zh-cn' 
+        default: 'luci-app-passwall luci-i18n-package-manager-zh-cn luci-app-quickstart luci-i18n-firewall-zh-cn luci-app-advancedplus kmod-fs-ext4 kmod-usb-dwc3 kmod-usb3 kmod-tcp-bbr swconfig kmod-nft-tproxy kmod-nft-socket opkg luci-app-vlmcsd luci-app-diskman luci-app-upnp luci-app-timedreboot luci-app-taskplan luci-theme-argon luci-app-wizard luci-i18n-base-zh-cn' 
 
 jobs:
   download-build:
@@ -47,14 +47,22 @@ jobs:
         run: bash scripts/config-repos.sh 
   
       - name: Build Firmware 
-        run: |        
+        run: |
+          bash scripts/files-general.sh
+          
           cp -r files immortalwrt-imagebuilder-*/
           cd immortalwrt-imagebuilder-* || exit 1
           
           make image PROFILE="${{ inputs.model_id  }}" PACKAGES="${{ inputs.packages  }}" FILES="files"
                     
-      - name: Upload Artifacts 
-        uses: actions/upload-artifact@v4 
+      - name: Get timestamp 
+        id: date
+        run: echo "current_time=$(date +'%Y%m%d-%H%M')" >> $GITHUB_OUTPUT
+      
+      - name: Upload firmware files (.bin/.ubi)
+        uses: actions/upload-artifact@v4
         with:
-          name: firmware-${{ inputs.model_id  }}-${{ inputs.version  }}
-          path: immortalwrt-imagebuilder-*/bin/targets/${{ steps.get-target.outputs.target_platform_slash  }}
+          name: firmware-${{ inputs.model_id  }}-${{ inputs.version  }}-${{ steps.date.outputs.current_time  }}
+          path: |
+            immortalwrt-imagebuilder-*/bin/targets/${{ steps.get-target.outputs.target_platform_slash  }}/*.bin
+            immortalwrt-imagebuilder-*/bin/targets/${{ steps.get-target.outputs.target_platform_slash  }}/*.ubi 
