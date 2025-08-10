@@ -26,24 +26,38 @@ set_root_password() {
  
 # 配置无线网络 
 configure_wireless() {
-    # 获取所有无线网卡（radio0/radio1...）
     local radios=$(uci show wireless | grep -o 'radio[0-9]' | sort -u)
-    local wifi_password="1234567890"  # 默认密码 
+    local wifi_password="1234567890"
     
-    [ -z "$radios" ] && return  # 如果没有无线设备则退出 
+    [ -z "$radios" ] && return
     
-    for radio in $radios; do 
-        # 判断频段 (5G/2.4G)
+    for radio in $radios; do
         local band=$(uci -q get wireless.${radio}.band) 
         local prefix="wireless.default_${radio}" 
         
-        # 配置WiFi名称和密码 
-        uci set ${prefix}.ssid="WiFi_$([ "$band" = "5g" ] && echo "5G" || echo "2.4G")"  # 自动区分频段命名 
-        uci set ${prefix}.encryption='psk2'  # WPA2加密
-        uci set ${prefix}.key="$wifi_password"  # 设置密码
+        # 通用无线配置
+        uci set wireless.${radio}.htmode=$([ "$band" = "5g" ] && echo "HE160" || echo "HE40")
+        uci set wireless.${radio}.channel='auto'
+        uci set wireless.${radio}.mu_beamformer='1'  # MU-MIMO
+        uci set wireless.${radio}.mu_sounding='1'    # MU-MIMO 
+        uci set wireless.${radio}.beamforming='1'    # 波束成形
+        
+        # 无线接口配置 
+        uci set ${prefix}.ssid="WiFi_$([ "$band" = "5g" ] && echo "5G" || echo "2.4G")"
+        uci set ${prefix}.encryption='psk2'
+        uci set ${prefix}.key="$wifi_password"
+        
+        # 快速漫游配置 
+        uci set ${prefix}.ieee80211r='1'            
+        uci set ${prefix}.ft_psk_generate_local='0' 
+        uci set ${prefix}.ft_over_ds='0'           
+        uci set ${prefix}.ieee80211k='1'          
+        uci set ${prefix}.bss_transition='1'      
+        uci set ${prefix}.ieee80211v='1'          
+        uci set ${prefix}.disassoc_low_ack='0'    
     done 
     
-    uci commit wireless  # 提交配置 
+    uci commit wireless
 }
 
 # 配置WAN口LED 
@@ -75,6 +89,12 @@ configure_taskplan() {
     /etc/init.d/taskplan restart 2>/dev/null
 }
  
+# 配置DHCP 
+configure_dhcp(){
+    uci set dhcp.@dnsmasq[0].dns_redirect='1'
+    uci commit dhcp 
+}
+ 
 # 配置KMS服务器 
 configure_vlmcsd() {
     uci set vlmcsd.config.enabled='1' 
@@ -82,6 +102,21 @@ configure_vlmcsd() {
     uci set vlmcsd.config.internet_access='1' 
     uci commit vlmcsd 
     /etc/init.d/vlmcsd restart 2>/dev/null 
+}
+
+# 配置Passwall 
+configure_passwall() {
+    uci add passwall nodes  # 创建匿名节点配置节，类型为nodes 
+
+    uci set passwall.@nodes[-1].remarks='香港节点'  # 节点备注名 
+    uci set passwall.@nodes[-1].protocol='v2ray'   # 协议类型 
+    uci set passwall.@nodes[-1].address='hk.example.com'   # 服务器地址 
+    uci set passwall.@nodes[-1].port='443'         # 端口 
+    uci set passwall.@nodes[-1].username='user1'   # VMess用户名（若为Trojan/SS则用password）
+    uci set passwall.@nodes[-1].security='auto'    # 加密方式 
+
+    uci commit passwall    # 提交配置到文件
+    service passwall restart  # 重启Passwall生效 
 }
 
 # 主执行流程 
@@ -95,6 +130,7 @@ main() {
     configure_taskplan 
     configure_dhcp 
     configure_vlmcsd
+    configure_passwall
     uci commit 
 }
  
