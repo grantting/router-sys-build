@@ -24,10 +24,14 @@ set_root_password() {
     echo -e "root\nroot" | passwd root >/dev/null 2>&1 
 }
  
+configure_wizard() {
+    uci set wizard.default.wifi_ssid='WiFi'         # 使用更安全的SSID命名
+    uci set wizard.default.wifi_key='1234567890'    # 高强度密码 (12位+大小写/符号)
+    uci commit wizard
+}
 # 配置无线网络 
 configure_wireless() {
     local radios=$(uci show wireless | grep -o 'radio[0-9]' | sort -u)
-    local wifi_password="1234567890"
     
     [ -z "$radios" ] && return
     
@@ -36,17 +40,11 @@ configure_wireless() {
         local prefix="wireless.default_${radio}" 
         
         # 通用无线配置
-        uci set wireless.${radio}.htmode=$([ "$band" = "5g" ] && echo "HE160" || echo "HE40")
         uci set wireless.${radio}.channel='auto'
         uci set wireless.${radio}.mu_beamformer='1'  # MU-MIMO
         uci set wireless.${radio}.mu_sounding='1'    # MU-MIMO 
         uci set wireless.${radio}.beamforming='1'    # 波束成形
-        
-        # 无线接口配置 
-        uci set ${prefix}.ssid="WiFi_$([ "$band" = "5g" ] && echo "5G" || echo "2.4G")"
-        uci set ${prefix}.encryption='psk2'
-        uci set ${prefix}.key="$wifi_password"
-        
+
         # 快速漫游配置 
         uci set ${prefix}.ieee80211r='1'            
         uci set ${prefix}.ft_psk_generate_local='0' 
@@ -104,21 +102,6 @@ configure_vlmcsd() {
     /etc/init.d/vlmcsd restart 2>/dev/null 
 }
 
-# 配置Passwall 
-configure_passwall() {
-    # 在 passwall 中添加一个新的 nodes 节点
-    uci add passwall nodes
-
-    usleep 100000  # 100毫秒延迟
-
-    uci set passwall.@nodes[-1].remarks='自动切换'
-    uci set passwall.@nodes[-1].type='Socks'
-    uci set passwall.@nodes[-1].address='127.0.0.1'
-    uci set passwall.@nodes[-1].port='1081'
-    # 提交更改
-    uci commit passwall
-}
-
 # 主执行流程 
 main() {
     change_default_ip 
@@ -130,7 +113,6 @@ main() {
     configure_taskplan 
     configure_dhcp 
     configure_vlmcsd
-    configure_passwall
     uci commit 
 }
  
