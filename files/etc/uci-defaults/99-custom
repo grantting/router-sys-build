@@ -16,7 +16,7 @@ configure_wizard() {
     uci commit wizard
 }
 
-# 设置主机名 
+# 设置主机名
 change_hostname() {
     local new_hostname="Xwrt"
     uci set system.@system[0].hostname="$new_hostname"
