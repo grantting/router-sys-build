@@ -8,10 +8,10 @@ change_default_ip() {
 
 # 设置WiFi名称
 configure_wizard() {
-    uci set wizard.default.wifi_ssid='WiFi'
-    uci set wizard.default.wifi_key='1234567890'
+    uci set wizard.default.wifi_ssid='WiFi' 
+    uci set wizard.default.wifi_key='1234567890' 
     uci set wizard.default.old_wifi_ssid='WiFi'
-    uci set wizard.default.old_wifi_key='1234567890'
+    uci set wizard.default.old_wifi_key='1234567890' 
 
     uci commit wizard
 }
