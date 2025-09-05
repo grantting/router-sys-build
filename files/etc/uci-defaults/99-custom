@@ -25,10 +25,11 @@ set_root_password() {
 }
  
 configure_wizard() {
-    uci set wizard.default.wifi_ssid='WiFi'         # 使用更安全的SSID命名
-    uci set wizard.default.wifi_key='1234567890'    # 高强度密码 (12位+大小写/符号)
+    uci set wizard.default.wifi_ssid='WiFi'
+    uci set wizard.default.wifi_key='1234567890'
     uci commit wizard
 }
+
 # 配置无线网络 
 configure_wireless() {
     local radios=$(uci show wireless | grep -o 'radio[0-9]' | sort -u)
@@ -113,6 +114,7 @@ main() {
     configure_taskplan 
     configure_dhcp 
     configure_vlmcsd
+    configure_wizard
     uci commit 
 }
  
