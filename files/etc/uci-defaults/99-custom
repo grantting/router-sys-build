@@ -5,7 +5,15 @@ change_default_ip() {
     uci set network.lan.ipaddr="10.0.0.1" 
     uci commit network 
 }
- 
+
+# 设置WiFi名称
+configure_wizard() {
+    uci set wizard.default.old_wifi_ssid='WiFi'
+    uci set wizard.default.old_wifi_key='1234567890'
+
+    uci commit wizard
+}
+
 # 设置主机名 
 change_hostname() {
     local new_hostname="Xwrt"
@@ -14,20 +22,13 @@ change_hostname() {
     echo "$new_hostname" > /proc/sys/kernel/hostname 
 }
  
-# 追加编译作者信息 
 modify_firmware_description() {
-    sed -i "s/\(DISTRIB_DESCRIPTION='.*\)'/\1 Compiled by xding'/" /etc/openwrt_release 
+    sed -i "s/DISTRIB_DESCRIPTION='.*'/DISTRIB_DESCRIPTION='Compiled by xding'/" /etc/openwrt_release 
 }
- 
+
 # 设置root密码 
 set_root_password() {
     echo -e "root\nroot" | passwd root >/dev/null 2>&1 
-}
- 
-configure_wizard() {
-    uci set wizard.default.wifi_ssid='WiFi'
-    uci set wizard.default.wifi_key='1234567890'
-    uci commit wizard
 }
 
 # 配置无线网络 
