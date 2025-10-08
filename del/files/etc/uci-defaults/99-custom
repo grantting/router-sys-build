@@ -27,7 +27,7 @@ set_root_password() {
 # 配置无线网络 
 configure_wireless() {
     local radios=$(uci show wireless | grep -o 'radio[0-9]' | sort -u)
-    local wifi_password="1234567890"
+    local wifi_password="123*567890"
     
     [ -z "$radios" ] && return
     
@@ -42,7 +42,7 @@ configure_wireless() {
         uci set wireless.${radio}.beamforming='1'    # 波束成形
         
         # 无线接口配置 
-        uci set ${prefix}.ssid="WiFi_$([ "$band" = "5g" ] && echo "5G" || echo "2.4G")"
+        uci set ${prefix}.ssid="康达姆机器人_$([ "$band" = "5g" ] && echo "5G" || echo "2.4G")"
         uci set ${prefix}.encryption='psk2'
         uci set ${prefix}.key="$wifi_password"
         
