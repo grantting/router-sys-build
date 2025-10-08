@@ -3,12 +3,11 @@
 set -e 
 
 echo "正在配置软件源..."
+mkdir -p files
 cd immortalwrt-imagebuilder-* || exit 1 
  
 ARCH_PACKAGES=$(grep 'CONFIG_TARGET_ARCH_PACKAGES=' .config | cut -d '"' -f 2)
 echo "检测到架构包: $ARCH_PACKAGES"
-
-mkdir -p files
 
 mkdir -p files/etc/opkg       # 创建目录
 touch files/etc/opkg/customfeeds.conf   # 创建文件
