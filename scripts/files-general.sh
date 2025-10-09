@@ -175,3 +175,12 @@ sed -i "s|__WIFI_PASS__|$(printf '%s' "$WIFI_PASS" | sed 's/[&/]/\\&/g')|g" file
 sed -i "s|__DEFAULT_LAN_IP__|$(printf '%s' "$DEFAULT_LAN_IP" | sed 's/[&/]/\\&/g')|g" files/etc/uci-defaults/99-custom || true
 
 chmod +x files/etc/uci-defaults/99-custom 2>/dev/null || true
+
+# Output the generated file to console for verification
+echo "----- files/etc/uci-defaults/99-custom (start) -----"
+if [ -f files/etc/uci-defaults/99-custom ]; then
+	sed -n '1,200p' files/etc/uci-defaults/99-custom || true
+else
+	echo "files/etc/uci-defaults/99-custom not found"
+fi
+echo "----- files/etc/uci-defaults/99-custom (end) -----"

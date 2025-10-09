@@ -32,14 +32,6 @@ on:
         description: 'LAN 默认 IP（登录后台地址）'
         required: false
         default: '10.0.0.1'
-      produce_recovery:
-        description: '是否生成恢复用的 initramfs (最小文件系统)'
-        required: false
-        default: 'true'
-        type: choice
-        options:
-          - 'true'
-          - 'false'
 
 jobs:
   download-build:
@@ -74,25 +66,11 @@ jobs:
           export DEFAULT_LAN_IP="${{ inputs.lan_ip }}"
 
           bash scripts/files-general.sh
-
-          # Prepare a minimal files directory for recovery initramfs
-          mkdir -p files-minimal/etc
-          echo "# minimal recovery rootfs" > files-minimal/etc/issue
-
+          
           cp -r files immortalwrt-imagebuilder-*/
-          cp -r files-minimal immortalwrt-imagebuilder-*/ || true
           cd immortalwrt-imagebuilder-* || exit 1
-
-          # Regular image build
+          
           make image PROFILE="${{ inputs.model_id  }}" PACKAGES="${{ inputs.packages  }}" FILES="files"
-
-          # Optionally build a minimal initramfs for recovery
-          if [ "${{ inputs.produce_recovery }}" = 'true' ]; then
-            echo "Building recovery minimal image (kernel + minimal rootfs)..."
-            # Minimal package set for recovery image; adjust as needed
-            RECOVERY_PACKAGES="base-files busybox"
-            make image PROFILE="${{ inputs.model_id  }}" PACKAGES="$RECOVERY_PACKAGES" FILES="files-minimal"
-          fi
                     
       - name: Get timestamp 
         id: date
