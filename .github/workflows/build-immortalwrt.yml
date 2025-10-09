@@ -88,8 +88,10 @@ jobs:
 
           # Optionally build a minimal initramfs for recovery
           if [ "${{ inputs.produce_recovery }}" = 'true' ]; then
-            echo "Building recovery initramfs (minimal)..."
-            make image PROFILE="${{ inputs.model_id  }}" PACKAGES="base-files busybox" IMAGE_TYPE="initramfs" FILES="files-minimal"
+            echo "Building recovery minimal image (kernel + minimal rootfs)..."
+            # Minimal package set for recovery image; adjust as needed
+            RECOVERY_PACKAGES="base-files busybox"
+            make image PROFILE="${{ inputs.model_id  }}" PACKAGES="$RECOVERY_PACKAGES" FILES="files-minimal"
           fi
                     
       - name: Get timestamp 
