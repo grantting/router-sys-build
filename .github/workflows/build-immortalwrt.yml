@@ -20,7 +20,10 @@ on:
         description: '选择要编译的包（用空格分隔），可用 -pkg 排除包'
         required: false 
         default: 'luci-app-quickstart luci-app-passwall luci-i18n-package-manager-zh-cn luci-i18n-firewall-zh-cn luci-app-advancedplus kmod-fs-ext4 kmod-usb-dwc3 kmod-usb3 kmod-tcp-bbr swconfig kmod-nft-tproxy kmod-nft-socket opkg luci-app-vlmcsd luci-app-diskman luci-app-upnp luci-app-timedreboot luci-app-taskplan luci-theme-argon luci-app-wizard luci-i18n-base-zh-cn' 
-      # wifi inputs removed per request
+      rootfs_size:
+        description: 'RootFS 分区大小（MB），默认 300'
+        required: false
+        default: '300'
 
 jobs:
   download-build:
@@ -54,7 +57,7 @@ jobs:
           cp -r files immortalwrt-imagebuilder-*/
           cd immortalwrt-imagebuilder-* || exit 1
           
-          make image PROFILE="${{ inputs.model_id  }}" PACKAGES="${{ inputs.packages  }}" FILES="files"
+          make image PROFILE="${{ inputs.model_id  }}" PACKAGES="${{ inputs.packages  }}" FILES="files" ROOTFS_PARTSIZE=${{ inputs.rootfs_size  }}
                     
       - name: Get timestamp 
         id: date
