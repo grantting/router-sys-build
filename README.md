@@ -19,6 +19,8 @@
    - **model_id**: 选择设备型号
    - **packages**: 要安装的软件包（空格分隔，可用 `-包名` 排除）
    - **rootfs_size**: RootFS 分区大小（MB，默认 `300`）
+   - **wifi_ssid**: WiFi 名称前缀（默认 `康达姆机器人`，2.4G 和 5G 自动添加后缀）
+   - **wifi_password**: WiFi 密码（默认 `123*567890`）
 4. 等待构建完成，在 Artifacts 中下载固件
 
 ## 参数说明
@@ -96,6 +98,25 @@ luci-i18n-base-zh-cn -ppp -ppp-mod-pppoe
 - 256MB Flash 的 Redmi AX6，填 `200` 或 `300`
 
 > **警告**：RootFS 太小会导致无法安装更多插件；太大会增加编译时间和下载大小。
+
+### wifi_ssid - WiFi 名称
+
+自定义 WiFi 的 SSID 名称。只需填写基础名称，系统会自动为 2.4G 和 5G 添加 `_2.4G` / `_5G` 后缀。
+
+| 参数值 | 生成的 SSID |
+|--------|-------------|
+| `康达姆机器人`（默认） | `康达姆机器人_2.4G` / `康达姆机器人_5G` |
+| `MyWiFi` | `MyWiFi_2.4G` / `MyWiFi_5G` |
+| `Home_Network` | `Home_Network_2.4G` / `Home_Network_5G` |
+
+### wifi_password - WiFi 密码
+
+设置 WiFi 连接的密码，至少 8 位。
+
+| 参数值 | 说明 |
+|--------|------|
+| `123*567890`（默认） | 默认密码 |
+| `MySecurePass123` | 自定义密码 |
 
 ## 默认配置
 
@@ -186,6 +207,43 @@ luci-app-passwall luci-app-ssr-plus luci-app-dockerman
 luci-app-passwall -dnsmasq dnsmasq-full
 ```
 
+## 本地调试
+
+无需每次修改都 Push 到 GitHub，可以在本地 Linux 或 WSL 环境中直接编译调试。
+
+### 前置要求
+
+- **操作系统**: Linux (Ubuntu 22.04 推荐) 或 WSL2
+- **依赖**: 首次运行前安装编译工具链
+
+```bash
+# 安装所有依赖
+sudo bash scripts/install-deps.sh
+```
+
+### 使用方式
+
+```bash
+# 基本用法（使用默认参数）
+bash scripts/build-local.sh
+
+# 指定版本和机型
+bash scripts/build-local.sh --version 24.10.3 --model redmi_ax6-stock
+
+# 自定义 WiFi 名称和密码
+bash scripts/build-local.sh --wifi-ssid MyWiFi --wifi-password MyPass123
+
+# 通过环境变量传参
+VERSION=24.10.0 MODEL_ID=qihoo_360t7 ROOTFS_SIZE=200 bash scripts/build-local.sh
+
+# 查看帮助
+bash scripts/build-local.sh --help
+```
+
+### 编译产物
+
+编译完成后，固件文件位于 `immortalwrt-imagebuilder-*/bin/targets/<平台>/` 目录下。
+
 ## 脚本说明
 
 | 脚本 | 功能 |
@@ -195,7 +253,7 @@ luci-app-passwall -dnsmasq dnsmasq-full
 | `download-extract.sh` | 下载并解压对应版本的 ImageBuilder |
 | `config-repos.sh` | 配置软件源仓库，添加 kiddin9 扩展源 |
 | `files-general.sh` | 生成 opkg 配置和自定义软件源 |
-| `build-firmware.sh` | 独立编译脚本，包含更多默认配置选项 |
+| `build-local.sh` | **本地编译入口脚本**，完整模拟 GitHub Actions 流程 |
 
 ## 注意事项
 
@@ -205,3 +263,4 @@ luci-app-passwall -dnsmasq dnsmasq-full
 - 编译过程约需 10-30 分钟，取决于软件包数量
 - RootFS 分区越大，编译时间和下载大小越大
 - 建议在设备 Flash 容量的 80% 以内设置 RootFS 大小
+- **编译产物有效期 10 天**，请及时下载固件

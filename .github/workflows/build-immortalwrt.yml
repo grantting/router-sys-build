@@ -24,6 +24,14 @@ on:
         description: 'RootFS 分区大小（MB），默认 300'
         required: false
         default: '300'
+      wifi_ssid:
+        description: 'WiFi 名称前缀（自动添加 _2.4G / _5G 后缀）'
+        required: false
+        default: '康达姆机器人'
+      wifi_password:
+        description: 'WiFi 密码，至少8位'
+        required: false
+        default: '123*567890'
 
 jobs:
   download-build:
@@ -44,20 +52,58 @@ jobs:
         id: get-target 
         run: bash  scripts/get-platform.sh  ${{ inputs.version  }} ${{ inputs.model_id  }}
  
-      - name: Download and Extract ImageBuilder 
+      - name: Cache ImageBuilder
+        id: cache-imagebuilder
+        uses: actions/cache@v4
+        with:
+          path: immortalwrt-imagebuilder-*
+          key: immortalwrt-imagebuilder-${{ inputs.version }}-${{ steps.get-target.outputs.target_platform_hyphen }}
+
+      - name: Download and Extract ImageBuilder
+        if: steps.cache-imagebuilder.outputs.cache-hit != 'true'
         run: bash  scripts/download-extract.sh  ${{ inputs.version  }} ${{ steps.get-target.outputs.target_platform_slash  }} ${{ steps.get-target.outputs.target_platform_hyphen  }}
 
       - name: Configure Repositories 
         run: bash scripts/config-repos.sh 
   
-      - name: Build Firmware 
+      - name: Apply custom WiFi settings
+        env:
+          WIFI_SSID: ${{ inputs.wifi_ssid }}
+          WIFI_PASSWORD: ${{ inputs.wifi_password }}
+        run: |
+          python3 << 'PYEOF'
+          import os
+          ssid = os.environ['WIFI_SSID']
+          password = os.environ['WIFI_PASSWORD']
+          filepath = 'files/etc/uci-defaults/99-custom'
+          with open(filepath, 'r', encoding='utf-8') as f:
+              content = f.read()
+          content = content.replace('康达姆机器人', ssid)
+          content = content.replace('123*567890', password)
+          with open(filepath, 'w', encoding='utf-8') as f:
+              f.write(content)
+          PYEOF
+
+      - name: Build Firmware
         run: |
           bash scripts/files-general.sh
           
           cp -r files immortalwrt-imagebuilder-*/
           cd immortalwrt-imagebuilder-* || exit 1
           
-          make image PROFILE="${{ inputs.model_id  }}" PACKAGES="${{ inputs.packages  }}" FILES="files" ROOTFS_PARTSIZE=${{ inputs.rootfs_size  }}
+          make image PROFILE="${{ inputs.model_id  }}" PACKAGES="${{ inputs.packages  }}" FILES="files" ROOTFS_PARTSIZE=${{ inputs.rootfs_size  }} -j$(nproc)
+
+      - name: Verify firmware
+        run: |
+          FIRMWARE_DIR="immortalwrt-imagebuilder-*/bin/targets/${{ steps.get-target.outputs.target_platform_slash }}"
+          echo "=== 编译产物 ==="
+          ls -lh $FIRMWARE_DIR/ 2>/dev/null
+          if ls $FIRMWARE_DIR/*.bin 1>/dev/null 2>&1 || ls $FIRMWARE_DIR/*.ubi 1>/dev/null 2>&1 || ls $FIRMWARE_DIR/*.img 1>/dev/null 2>&1; then
+            echo "✓ 固件验证通过"
+          else
+            echo "✗ 未找到固件文件"
+            exit 1
+          fi
                     
       - name: Get timestamp 
         id: date
@@ -70,5 +116,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: firmware-${{ inputs.model_id  }}-${{ inputs.version  }}-${{ steps.date.outputs.current_time  }}
+          retention-days: 10
           path: |
             immortalwrt-imagebuilder-*/bin/targets/${{ steps.get-target.outputs.target_platform_slash  }}/*

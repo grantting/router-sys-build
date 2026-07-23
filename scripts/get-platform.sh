@@ -22,7 +22,14 @@ if [ -z "$TARGET" ]; then
     exit 1 
 fi 
  
-echo "target_platform_slash=$TARGET" >> $GITHUB_OUTPUT 
 FORMATTED_TARGET=$(echo $TARGET | tr '/' '-')
-echo "target_platform_hyphen=$FORMATTED_TARGET" >> $GITHUB_OUTPUT 
+
+if [ -n "$GITHUB_OUTPUT" ]; then
+    echo "target_platform_slash=$TARGET" >> $GITHUB_OUTPUT
+    echo "target_platform_hyphen=$FORMATTED_TARGET" >> $GITHUB_OUTPUT
+else
+    export TARGET_PLATFORM_SLASH="$TARGET"
+    export TARGET_PLATFORM_HYPHEN="$FORMATTED_TARGET"
+fi
+
 echo "获取平台信息成功: $TARGET"

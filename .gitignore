@@ -1,0 +1,14 @@
+# 编译临时目录
+del/
+temp/
+tmp/
+
+# 编译产物
+*.bin
+*.ubi
+*.tar.zst
+*.img
+
+# 系统文件
+.DS_Store
+Thumbs.db
