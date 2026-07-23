@@ -5,15 +5,16 @@ echo "正在配置软件源..."
 
 # 安全地找到 imagebuilder 目录
 shopt -s nullglob
-BUILDER_DIR=(immortalwrt-imagebuilder-*)
+BUILDER_DIRS=(immortalwrt-imagebuilder-*)
 shopt -u nullglob
 
-if [ ${#BUILDER_DIR[@]} -eq 0 ]; then
+if [ ${#BUILDER_DIRS[@]} -eq 0 ]; then
     echo "错误: 未找到 immortalwrt-imagebuilder-* 目录，请先运行 download-extract.sh"
     exit 1
 fi
+BUILDER_DIR="${BUILDER_DIRS[0]}"
 
-cd "${BUILDER_DIR[0]}" || exit 1
+cd "$BUILDER_DIR" || exit 1
 
 if [ ! -f .config ]; then
     echo "错误: .config 文件不存在于 $(pwd)"
@@ -23,26 +24,34 @@ fi
 ARCH_PACKAGES=$(grep 'CONFIG_TARGET_ARCH_PACKAGES=' .config | cut -d '"' -f 2)
 echo "检测到架构包: $ARCH_PACKAGES"
 
-# 从目录名提取版本号（例如 immortalwrt-imagebuilder-25.12.0-... -> 25.12.0）
-BUILDER_VERSION=$(echo "${BUILDER_DIR[0]}" | sed 's/immortalwrt-imagebuilder-\([0-9.]*\)-.*/\1/')
-echo "检测到 ImageBuilder 版本: $BUILDER_VERSION"
+# 从目录名提取信息（例如 immortalwrt-imagebuilder-25.12.1-ipq807x-generic）
+# 版本号: 25.12.1
+BUILDER_VERSION=$(echo "$BUILDER_DIR" | sed 's/^immortalwrt-imagebuilder-\([0-9.]*\)-.*/\1/')
+# 目标板: ipq807x
+BUILDER_BOARD=$(echo "$BUILDER_DIR" | sed 's/^immortalwrt-imagebuilder-[0-9.]*-\([a-z0-9]*\)-.*/\1/')
+# 子目标: generic
+BUILDER_SUBTARGET=$(echo "$BUILDER_DIR" | sed 's/^immortalwrt-imagebuilder-[0-9.]*-[a-z0-9]*-//')
+echo "检测到 ImageBuilder 版本: $BUILDER_VERSION, 目标: $BUILDER_BOARD/$BUILDER_SUBTARGET"
  
-# 禁用签名检查（如果 repositories.conf 存在）
+RELEASE_URL="https://downloads.immortalwrt.org/releases/$BUILDER_VERSION"
+PACKAGES_URL="$RELEASE_URL/packages/$ARCH_PACKAGES"
+
 if [ -f repositories.conf ]; then
-    sed -i 's/^option check_signature/# option check_signature/' repositories.conf  
+    sed -i 's/^option check_signature/# option check_signature/' repositories.conf
 else
-    echo "警告: repositories.conf 不存在，正在创建..."
-    cat > repositories.conf << 'EOF'
-src/gz openwrt_core
-src/gz openwrt_base
-src/gz openwrt_packages
-src/gz openwrt_luci
-src/gz openwrt_routing
-src/gz openwrt_telephony
+    echo "警告: repositories.conf 不存在，正在生成..."
+    cat > repositories.conf << EOF
+src/gz openwrt_core $RELEASE_URL/targets/$BUILDER_BOARD/$BUILDER_SUBTARGET/packages
+src/gz openwrt_base $PACKAGES_URL/base
+src/gz openwrt_packages $PACKAGES_URL/packages
+src/gz openwrt_luci $PACKAGES_URL/luci
+src/gz openwrt_routing $PACKAGES_URL/routing
+src/gz openwrt_telephony $PACKAGES_URL/telephony
+option check_signature
 EOF
 fi
  
-# 添加 kiddin9 源（使用动态版本号）
+# 添加 kiddin9 源（使用动态版本号，截取前两段，如 25.12.1 -> 25.12）
 KIDDIN9_VERSION=$(echo "$BUILDER_VERSION" | sed 's/\.[0-9]*$//')
 echo "src/gz kiddin9_packages https://dl.openwrt.ai/releases/$KIDDIN9_VERSION/packages/$ARCH_PACKAGES/kiddin9" >> repositories.conf  
 
@@ -51,7 +60,7 @@ cat repositories.conf
 
 # 解决默认设置冲突 
 echo "CONFIG_PACKAGE_default-settings-chn=y" >> .config 
-echo "CONFIG_PACKAGE_luci-lua-runtime=n" >> .config  # 显式禁用包
+echo "CONFIG_PACKAGE_luci-lua-runtime=n" >> .config
 
 echo "当前配置修改："
 grep -E "default-settings" .config
