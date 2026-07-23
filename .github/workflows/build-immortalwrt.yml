@@ -23,7 +23,7 @@ on:
       rootfs_size:
         description: 'RootFS 分区大小（MB），默认 300'
         required: false
-        default: '300'
+        default: '200'
       wifi_ssid:
         description: 'WiFi 名称前缀（自动添加 _2.4G / _5G 后缀）'
         required: false
@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-22.04 
     steps:
       - name: Checkout 
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
  
       - name: Initialization Environment
         run: |
@@ -54,7 +54,7 @@ jobs:
  
       - name: Cache ImageBuilder
         id: cache-imagebuilder
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: immortalwrt-imagebuilder-*
           key: immortalwrt-imagebuilder-${{ inputs.version }}-${{ steps.get-target.outputs.target_platform_hyphen }}
@@ -120,7 +120,7 @@ jobs:
           echo "current_time=$(date +'%Y%m%d-%H%M')" >> $GITHUB_OUTPUT
       
       - name: Upload firmware files (.bin/.ubi)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: firmware-${{ inputs.model_id  }}-${{ inputs.version  }}-${{ steps.date.outputs.current_time  }}
           retention-days: 10
