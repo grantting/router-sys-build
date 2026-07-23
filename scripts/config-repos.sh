@@ -51,9 +51,16 @@ option check_signature
 EOF
 fi
  
-# 添加 kiddin9 源（使用动态版本号，截取前两段，如 25.12.1 -> 25.12）
-KIDDIN9_VERSION=$(echo "$BUILDER_VERSION" | sed 's/\.[0-9]*$//')
-echo "src/gz kiddin9_packages https://dl.openwrt.ai/releases/$KIDDIN9_VERSION/packages/$ARCH_PACKAGES/kiddin9" >> repositories.conf  
+# 检查版本：25.x+ 使用 APK 包管理器，kiddin9 源仅提供 .ipk 包，不兼容
+BUILDER_MAJOR=$(echo "$BUILDER_VERSION" | cut -d. -f1)
+if [ "$BUILDER_MAJOR" -ge 25 ] 2>/dev/null; then
+    echo "注意: ImmortalWrt $BUILDER_VERSION 使用 APK 包管理器"
+    echo "kiddin9 源 (dl.openwrt.ai) 仅提供 .ipk 包，与 APK 不兼容，已跳过"
+    echo "如需第三方包，请使用 APK 兼容的源"
+else
+    KIDDIN9_VERSION=$(echo "$BUILDER_VERSION" | sed 's/\.[0-9]*$//')
+    echo "src/gz kiddin9_packages https://dl.openwrt.ai/releases/$KIDDIN9_VERSION/packages/$ARCH_PACKAGES/kiddin9" >> repositories.conf
+fi
 
 echo "当前软件源配置："
 cat repositories.conf  

@@ -29,9 +29,17 @@ show_help() {
 EOF
 }
 
-DEFAULT_PACKAGES="luci-app-quickstart luci-app-passwall luci-i18n-package-manager-zh-cn luci-i18n-firewall-zh-cn luci-app-advancedplus kmod-fs-ext4 kmod-usb-dwc3 kmod-usb3 kmod-tcp-bbr swconfig kmod-nft-tproxy kmod-nft-socket opkg luci-app-vlmcsd luci-app-diskman luci-app-upnp luci-app-timedreboot luci-app-taskplan luci-theme-argon luci-app-wizard luci-i18n-base-zh-cn"
-
 VERSION="${VERSION:-24.10.3}"
+
+# 判断包管理器：25.x+ 使用 APK，之前使用 opkg
+VERSION_MAJOR=$(echo "$VERSION" | cut -d. -f1)
+if [ "$VERSION_MAJOR" -ge 25 ] 2>/dev/null; then
+    # APK 版本：opkg 不可用，kiddin9 源不兼容
+    DEFAULT_PACKAGES="luci-app-passwall luci-i18n-package-manager-zh-cn luci-i18n-firewall-zh-cn kmod-fs-ext4 kmod-usb-dwc3 kmod-usb3 kmod-tcp-bbr swconfig kmod-nft-tproxy kmod-nft-socket luci-app-vlmcsd luci-app-diskman luci-app-upnp luci-theme-argon luci-i18n-base-zh-cn"
+else
+    # opkg 版本
+    DEFAULT_PACKAGES="luci-app-quickstart luci-app-passwall luci-i18n-package-manager-zh-cn luci-i18n-firewall-zh-cn luci-app-advancedplus kmod-fs-ext4 kmod-usb-dwc3 kmod-usb3 kmod-tcp-bbr swconfig kmod-nft-tproxy kmod-nft-socket opkg luci-app-vlmcsd luci-app-diskman luci-app-upnp luci-app-timedreboot luci-app-taskplan luci-theme-argon luci-app-wizard luci-i18n-base-zh-cn"
+fi
 MODEL_ID="${MODEL_ID:-redmi_ax6-stock}"
 PACKAGES="${PACKAGES:-$DEFAULT_PACKAGES}"
 ROOTFS_SIZE="${ROOTFS_SIZE:-300}"
