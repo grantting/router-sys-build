@@ -11,7 +11,7 @@ echo "检测到架构包: $ARCH_PACKAGES"
 sed -i 's/^option check_signature/# option check_signature/' repositories.conf  
  
 # 添加源
-echo "src/gz kiddin9_packages https://dl.openwrt.ai/releases/24.10/packages/$ARCH_PACKAGES/kiddin9"  >> repositories.conf  
+echo "src/gz kiddin9_packages https://dl.openwrt.ai/releases/25.12/packages/$ARCH_PACKAGES/kiddin9"  >> repositories.conf  
 
 # echo "src/gz openwrt_kenzok8_package https://op.dllkids.xyz/packages/$ARCH_PACKAGES"  >> repositories.conf  
  
