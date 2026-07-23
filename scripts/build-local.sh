@@ -89,7 +89,7 @@ bash scripts/config-repos.sh
 
 # Step 4: 应用自定义 WiFi 配置
 echo ""
-echo "=== Step 4/6: 应用自定义 WiFi 配置 ===""
+echo "=== Step 4/6: 应用自定义 WiFi 配置 ==="
 python3 << 'PYEOF'
 import os, sys
 ssid = os.environ.get('WIFI_SSID', '康达姆机器人')
@@ -110,13 +110,24 @@ echo ""
 echo "=== Step 5/6: 生成配置文件并复制到 ImageBuilder ==="
 bash scripts/files-general.sh
 
+# 安全地找到 imagebuilder 目录
+shopt -s nullglob
+BUILDER_DIRS=(immortalwrt-imagebuilder-*)
+shopt -u nullglob
+
+if [ ${#BUILDER_DIRS[@]} -eq 0 ]; then
+    echo "错误: 未找到 immortalwrt-imagebuilder-* 目录"
+    exit 1
+fi
+BUILDER_DIR="${BUILDER_DIRS[0]}"
+
 echo "复制 files/ 到 ImageBuilder..."
-cp -r files immortalwrt-imagebuilder-*/
+cp -r files "$BUILDER_DIR"
 
 # Step 6: 编译固件
 echo ""
 echo "=== Step 6/6: 编译固件 ==="
-cd immortalwrt-imagebuilder-* || exit 1
+cd "$BUILDER_DIR" || exit 1
 
 echo "开始编译 (使用 $(nproc) 线程)..."
 make image \
@@ -132,7 +143,7 @@ echo ""
 echo "=========================================="
 echo "  编译完成"
 echo "=========================================="
-FIRMWARE_DIR="immortalwrt-imagebuilder-*/bin/targets/$TARGET_SLASH"
+FIRMWARE_DIR="$BUILDER_DIR/bin/targets/$TARGET_SLASH"
 if ls $FIRMWARE_DIR/*.bin 1>/dev/null 2>&1; then
     ls -lh $FIRMWARE_DIR/*.bin
 elif ls $FIRMWARE_DIR/*.ubi 1>/dev/null 2>&1; then
