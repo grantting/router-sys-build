@@ -1,5 +1,4 @@
 #!/bin/bash 
-set -e 
  
 # 修改默认网关地址 
 change_default_ip() {

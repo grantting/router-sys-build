@@ -23,7 +23,7 @@ on:
       rootfs_size:
         description: 'RootFS 分区大小（MB），默认 300'
         required: false
-        default: '200'
+        default: '120'
       wifi_ssid:
         description: 'WiFi 名称前缀（自动添加 _2.4G / _5G 后缀）'
         required: false
