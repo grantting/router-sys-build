@@ -36,15 +36,20 @@ configure_wireless() {
         local band=$(uci -q get wireless.${radio}.band) 
         local prefix="wireless.default_${radio}" 
         
-        # 通用无线配置
+        # 启用无线设备
+        uci set wireless.${radio}.disabled='0'
         uci set wireless.${radio}.channel='auto'
         uci set wireless.${radio}.mu_beamformer='1'  # MU-MIMO
         uci set wireless.${radio}.mu_sounding='1'    # MU-MIMO 
         uci set wireless.${radio}.beamforming='1'    # 波束成形
         
         # 无线接口配置 
+        uci set ${prefix}.disabled='0'
+        uci set ${prefix}.device="${radio}"
+        uci set ${prefix}.mode='ap'
+        uci set ${prefix}.network='lan'
         uci set ${prefix}.ssid="康达姆机器人_$([ "$band" = "5g" ] && echo "5G" || echo "2.4G")"
-        uci set ${prefix}.encryption='psk2'
+        uci set ${prefix}.encryption='psk2+ccmp'
         uci set ${prefix}.key="$wifi_password"
         
         # 快速漫游配置 
