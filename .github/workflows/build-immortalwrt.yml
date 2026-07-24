@@ -75,13 +75,14 @@ jobs:
           import os
           ssid = os.environ['WIFI_SSID']
           password = os.environ['WIFI_PASSWORD']
-          filepath = 'files/etc/uci-defaults/99-custom'
-          with open(filepath, 'r', encoding='utf-8') as f:
-              content = f.read()
-          content = content.replace('康达姆机器人', ssid)
-          content = content.replace('123*567890', password)
-          with open(filepath, 'w', encoding='utf-8') as f:
-              f.write(content)
+
+          for filepath in ['files/etc/config/wireless', 'files/etc/uci-defaults/99-custom']:
+              with open(filepath, 'r', encoding='utf-8') as f:
+                  content = f.read()
+              content = content.replace('康达姆机器人', ssid)
+              content = content.replace('123*567890', password)
+              with open(filepath, 'w', encoding='utf-8') as f:
+                  f.write(content)
           PYEOF
 
       - name: Build Firmware
